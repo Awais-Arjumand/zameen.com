@@ -1,0 +1,240 @@
+"use client";
+
+import React, { forwardRef, useImperativeHandle, useEffect, useState } from "react";
+import axios from "axios";
+import { IoCallOutline, IoMailOutline } from "react-icons/io5";
+import { IoMdAdd } from "react-icons/io";
+import { FaMinus } from "react-icons/fa6";
+import { useUser } from "@clerk/nextjs";
+
+// Get flag emoji from country code
+const getFlagEmoji = (countryCode) =>
+  countryCode
+    .toUpperCase()
+    .replace(/./g, (char) =>
+      String.fromCodePoint(127397 + char.charCodeAt())
+    );
+
+const ContactInformation = forwardRef((props, ref) => {
+  const { user } = useUser();
+  const [countries, setCountries] = useState([]);
+  const [mobileCountry, setMobileCountry] = useState(null);
+  const [landlineCountry, setLandlineCountry] = useState(null);
+  const [landlineNumber, setLandlineNumber] = useState("");
+  const [landlineError, setLandlineError] = useState(false);
+  const [mobileNumbers, setMobileNumbers] = useState([
+    { id: 1, value: "", error: false }
+  ]);
+  const [email, setEmail] = useState("");
+
+  // Load countries and default email on mount
+  useEffect(() => {
+    if (user?.primaryEmailAddress?.emailAddress) {
+      setEmail(user.primaryEmailAddress.emailAddress.toLowerCase());
+    }
+
+    axios
+      .get("https://restcountries.com/v3.1/all?fields=cca2,name,idd")
+      .then((res) => {
+        const list = res.data
+          .map((c) => {
+            const root = c.idd.root || "";
+            const suffix = (c.idd.suffixes && c.idd.suffixes[0]) || "";
+            return {
+              code: c.cca2,
+              name: c.name.common,
+              dialCode: root + suffix,
+              flag: getFlagEmoji(c.cca2),
+            };
+          })
+          .filter((c) => c.dialCode)
+          .sort((a, b) => a.name.localeCompare(b.name));
+
+        setCountries(list);
+        const pk = list.find((c) => c.code === "PK");
+        setMobileCountry(pk || list[0]);
+        setLandlineCountry(pk || list[0]);
+      })
+      .catch(console.error);
+  }, [user]);
+
+  const handleAddMobile = () => {
+    if (mobileNumbers.length < 3) {
+      const newId = mobileNumbers.length + 1;
+      setMobileNumbers([...mobileNumbers, { id: newId, value: "", error: false }]);
+    }
+  };
+
+  const handleRemoveMobile = (id) => {
+    if (mobileNumbers.length > 1) {
+      setMobileNumbers(mobileNumbers.filter(num => num.id !== id));
+    }
+  };
+
+  const handleMobileChange = (id, value) => {
+    const updatedNumbers = mobileNumbers.map(num =>
+      num.id === id ? { ...num, value, error: !validatePhone(value) } : num
+    );
+    setMobileNumbers(updatedNumbers);
+  };
+
+  const handleLandlineChange = (value) => {
+    setLandlineNumber(value);
+    setLandlineError(!validatePhone(value));
+  };
+
+  const handleEmailChange = (e) => {
+    setEmail(e.target.value.toLowerCase());
+  };
+
+  const validatePhone = (number) => {
+    return /^\d{7,}$/.test(number);
+  };
+
+  useImperativeHandle(ref, () => ({
+    getData: () => ({
+      email,
+      mobileNumbers,
+      landlineNumber,
+      landlineCountry: landlineCountry?.code,
+    }),
+    setData: (data) => {
+      setEmail(data.email || "");
+      setLandlineNumber(data.landlineNumber || "");
+      setMobileNumbers(
+        data.mobileNumbers && data.mobileNumbers.length > 0
+          ? data.mobileNumbers.map((num, index) => ({
+              id: index + 1,
+              value: num.value || "",
+              error: false,
+            }))
+          : [{ id: 1, value: "", error: false }]
+      );
+    },
+  }));
+
+  return (
+    <div className="w-full max-w-3xl mx-auto bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+      <div className="p-8">
+        <div className="flex items-center gap-x-3 mb-8 pb-3 border-b border-gray-200">
+          <div className="p-2 bg-gray-100 rounded-lg">
+            <IoCallOutline className="text-2xl text-gray-500" />
+          </div>
+          <h2 className="text-xl font-bold text-gray-800">Contact Information</h2>
+        </div>
+
+        {/* Email */}
+        <div className="flex items-center mb-6">
+          <div className="w-40 flex items-center gap-x-3">
+            <div className="p-2 bg-gray-100 rounded-lg">
+              <IoMailOutline className="text-xl text-gray-500" />
+            </div>
+            <span className="text-gray-600 font-medium">Email</span>
+          </div>
+          <div className="flex-1">
+            <input
+              type="email"
+              value={email}
+              onChange={handleEmailChange}
+              className="w-full border border-gray-300 rounded px-3 py-2 outline-none focus:ring-2 focus:ring-blue-500"
+            />
+          </div>
+        </div>
+
+        {/* Mobile Numbers */}
+        <div className="mb-6">
+          <div className="flex items-center mb-2">
+            <div className="w-40 flex items-center gap-x-3">
+              <div className="p-2 bg-gray-100 rounded-lg">
+                <IoCallOutline className="text-xl text-gray-500" />
+              </div>
+              <span className="text-gray-600 font-medium">Mobile</span>
+            </div>
+            <div className="flex-1 text-gray-500 text-sm">
+              {mobileNumbers.length > 1 ? `(${mobileNumbers.length} added)` : ""}
+            </div>
+          </div>
+
+          {mobileNumbers.map((mobile, index) => (
+            <div key={mobile.id} className="flex items-start mb-3">
+              <div className="w-40"></div>
+              <div className="flex-1 flex gap-x-3">
+                <div className="relative flex-1">
+                  <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none text-gray-500">
+                    {mobileCountry?.dialCode}
+                  </div>
+                  <input
+                    type="tel"
+                    className={`w-full pl-16 pr-3 py-3 outline-none border ${mobile.error ? "border-red-500" : "border-gray-300"} rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500`}
+                    placeholder="Phone number"
+                    value={mobile.value}
+                    onChange={(e) => handleMobileChange(mobile.id, e.target.value)}
+                  />
+                </div>
+                {index === 0 ? (
+                  <button
+                    type="button"
+                    className="flex-shrink-0 w-12 h-12 cursor-pointer flex items-center justify-center bg-green-500 text-white rounded-lg hover:bg-green-600 transition"
+                    onClick={handleAddMobile}
+                  >
+                    <IoMdAdd size={20} />
+                  </button>
+                ) : (
+                  <button
+                    type="button"
+                    className="flex-shrink-0 w-12 h-12 cursor-pointer flex items-center justify-center bg-red-100 border border-red-300 text-red-500 rounded-lg hover:bg-red-200 transition"
+                    onClick={() => handleRemoveMobile(mobile.id)}
+                  >
+                    <FaMinus size={16} />
+                  </button>
+                )}
+              </div>
+            </div>
+          ))}
+        </div>
+
+        {/* Landline */}
+        <div className="mb-2">
+          <div className="flex items-center mb-2">
+            <div className="w-40 flex items-center gap-x-3">
+              <div className="p-2 bg-gray-100 rounded-lg">
+                <IoCallOutline className="text-xl text-gray-500" />
+              </div>
+              <span className="text-gray-600 font-medium">Landline</span>
+            </div>
+          </div>
+
+          <div className="flex items-start">
+            <div className="w-40"></div>
+            <div className="flex-1 flex gap-x-3">
+              <div className="relative flex-1">
+                <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none text-gray-500">
+                  {landlineCountry?.dialCode}
+                </div>
+                <input
+                  type="tel"
+                  className={`w-full pl-16 pr-3 outline-none py-3 border ${landlineError && landlineNumber ? "border-red-500" : "border-gray-300"} rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500`}
+                  placeholder="Phone number"
+                  value={landlineNumber}
+                  onChange={(e) => handleLandlineChange(e.target.value)}
+                />
+              </div>
+              <div className="w-12"></div>
+            </div>
+          </div>
+        </div>
+
+        {landlineError && landlineNumber && (
+          <div className="mt-1 ml-40 text-red-500 text-sm flex items-start">
+            <svg className="w-4 h-4 mr-1 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
+              <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+            </svg>
+            Please enter a valid phone
+          </div>
+        )}
+      </div>
+    </div>
+  );
+});
+
+export default ContactInformation;
