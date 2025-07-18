@@ -9,7 +9,8 @@ import Select from "react-select";
 const AreaAndPrice = forwardRef((props, ref) => {
   const [area, setArea] = useState("");
   const [areaUnit, setAreaUnit] = useState("Marla");
-  const [price, setPrice] = useState("");
+  const [minPrice, setMinPrice] = useState("");
+  const [maxPrice, setMaxPrice] = useState("");
   const [priceUnit, setPriceUnit] = useState("PKR");
 
   // Options for area unit
@@ -29,7 +30,8 @@ const AreaAndPrice = forwardRef((props, ref) => {
     getData: () => ({
       area,
       areaUnit,
-      price,
+      minPrice,
+      maxPrice,
       priceUnit,
     }),
   }));
@@ -111,34 +113,55 @@ const AreaAndPrice = forwardRef((props, ref) => {
           <div className="w-full flex flex-col gap-y-3 py-3">
             <SelectionIconOrLabel
               icon={<IoPricetagOutline className="text-xl text-gray-700" />}
-              label={"Price"}
+              label={"Price Range"}
             />
-            <div className="w-full flex gap-x-2">
-              <input
-                type="text"
-                value={price}
-                onChange={(e) => setPrice(e.target.value)}
-                className="w-full border border-gray-500 capitalize rounded px-3 py-2 outline-1 outline-green-500 placeholder:text-sm text-sm"
-                placeholder="Enter Price"
-              />
-              <div className="w-32">
-                <Select
-                  options={priceUnitOptions}
-                  value={priceUnitOptions.find(
-                    (option) => option.value === priceUnit
-                  )}
-                  styles={customStyles}
-                  className="text-sm"
-                  isSearchable={false}
-                  instanceId="price-unit-select"
-                  menuPortalTarget={
-                    typeof document !== "undefined" ? document.body : null
-                  }
-                  menuPosition="fixed"
-                  onChange={(selectedOption) =>
-                    setPriceUnit(selectedOption.value)
-                  }
+            <div className="w-full flex flex-col gap-y-2">
+              {/* Min Price */}
+              <div className="w-full flex gap-x-2 items-center">
+                <div className="w-24 text-sm font-medium">Min Price:</div>
+                <input
+                  type="text"
+                  value={minPrice}
+                  onChange={(e) => setMinPrice(e.target.value)}
+                  className="w-full border border-gray-500 capitalize rounded px-3 py-2 outline-1 outline-green-500 placeholder:text-sm text-sm"
+                  placeholder="Enter Minimum Price"
                 />
+              </div>
+              
+              {/* Max Price */}
+              <div className="w-full flex gap-x-2 items-center">
+                <div className="w-24 text-sm font-medium">Max Price:</div>
+                <input
+                  type="text"
+                  value={maxPrice}
+                  onChange={(e) => setMaxPrice(e.target.value)}
+                  className="w-full border border-gray-500 capitalize rounded px-3 py-2 outline-1 outline-green-500 placeholder:text-sm text-sm"
+                  placeholder="Enter Maximum Price"
+                />
+              </div>
+              
+              {/* Price Unit */}
+              <div className="w-full flex gap-x-2 items-center mt-2">
+                <div className="w-24 text-sm font-medium">Unit:</div>
+                <div className="w-40">
+                  <Select
+                    options={priceUnitOptions}
+                    value={priceUnitOptions.find(
+                      (option) => option.value === priceUnit
+                    )}
+                    styles={customStyles}
+                    className="text-sm"
+                    isSearchable={false}
+                    instanceId="price-unit-select"
+                    menuPortalTarget={
+                      typeof document !== "undefined" ? document.body : null
+                    }
+                    menuPosition="fixed"
+                    onChange={(selectedOption) =>
+                      setPriceUnit(selectedOption.value)
+                    }
+                  />
+                </div>
               </div>
             </div>
           </div>

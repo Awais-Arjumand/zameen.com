@@ -1,39 +1,24 @@
-import { clerkMiddleware } from "@clerk/nextjs/server";
 import { NextResponse } from "next/server";
 
-// Add property detail route to publicRoutes
-const publicRoutes = ["/sign-in", "/", "/property", "/property/:id"];
+// Define public and admin routes
+const publicRoutes = ["/", "/property", "/property/:id"];
+const adminRoutes = ["/admin"];
 
-export default clerkMiddleware(async (auth, req) => {
-  const { userId } = await auth();
-  // Allow all /property and /property/[id] as public
-  const isPublicRoute = publicRoutes.some((route) => {
-    if (route.includes(":id")) {
-      return req.nextUrl.pathname.startsWith("/property/");
-    }
-    return req.nextUrl.pathname === route;
-  });
+export function middleware(req) {
+  const { pathname } = req.nextUrl;
+  
+  // Check if the current path is a public route
+  const isPublicRoute = publicRoutes.some(route => 
+    route.includes(":id") ? pathname.startsWith("/property/") : pathname === route
+  );
 
-  if (!userId && !isPublicRoute) {
-    const signInUrl = new URL("/sign-in", req.url);
-    signInUrl.searchParams.set("redirect_url", req.url);
-    return NextResponse.redirect(signInUrl);
-  }
+  // Check if the current path is an admin route
+  const isAdminRoute = pathname.startsWith("/admin");
 
-  if (userId && isPublicRoute && req.nextUrl.pathname === "/sign-in") {
-    return NextResponse.redirect(new URL("/admin", req.url));
-  }
-
-  if (req.nextUrl.pathname.startsWith("/admin")) {
-    if (!userId) {
-      const signInUrl = new URL("/sign-in", req.url);
-      signInUrl.searchParams.set("redirect_url", req.url);
-      return NextResponse.redirect(signInUrl);
-    }
-  }
-
+  // For admin routes, you can implement authentication later
+  // Currently allowing all requests to proceed
   return NextResponse.next();
-});
+}
 
 export const config = {
   matcher: ["/((?!.*\\..*|_next).*)", "/", "/(api|trpc)(.*)"],

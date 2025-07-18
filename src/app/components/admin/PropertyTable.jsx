@@ -1,8 +1,10 @@
+
 "use client";
 
 import { useRouter } from "next/navigation";
 import axios from "axios";
-import { useState } from "react";
+import { useState, useMemo } from "react";
+import { ClipLoader } from "react-spinners";
 import Select from "react-select";
 
 export default function PropertyTable({
@@ -16,6 +18,20 @@ export default function PropertyTable({
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedProperty, setSelectedProperty] = useState(null);
   const [imagePreview, setImagePreview] = useState(null);
+  const [loading, setLoading] = useState(false);
+  const [deleteLoading, setDeleteLoading] = useState({});
+  
+  // Sorting and filtering states
+  const [sortField, setSortField] = useState(null);
+  const [sortDirection, setSortDirection] = useState('asc');
+  const [searchFilters, setSearchFilters] = useState({
+    location: '',
+    city: '',
+    category: '',
+    portionCategory: '',
+    buyOrRent: '',
+    senderName: ''
+  });
 
   const [formData, setFormData] = useState({
     description: "",
@@ -36,10 +52,13 @@ export default function PropertyTable({
 
   const handleDelete = async (id) => {
     try {
+      setDeleteLoading(prev => ({ ...prev, [id]: true }));
       await axios.delete(`http://localhost:3000/api/user/${id}`);
       router.refresh();
     } catch (error) {
       console.error("Delete failed:", error);
+    } finally {
+      setDeleteLoading(prev => ({ ...prev, [id]: false }));
     }
   };
 
@@ -51,19 +70,25 @@ export default function PropertyTable({
       price: property.price || "",
       priceUnit: property.priceUnit || "PKR",
       location: property.location || "",
-      category: categoryOptions.find((opt) => opt.value === property.category) || null,
+      category:
+        categoryOptions.find((opt) => opt.value === property.category) || null,
       city: cityOptions.find((opt) => opt.value === property.city) || null,
       beds: property.beds || "",
       Bath: property.Bath || "",
-      buyOrRent: purposeOptions.find((opt) => opt.value === property.buyOrRent) || null,
+      buyOrRent:
+        purposeOptions.find((opt) => opt.value === property.buyOrRent) || null,
       propertyDealerName: property.propertyDealerName || "",
       propertyDealerEmail: property.propertyDealerEmail || "", // ✅ ADDED
       Area: property.Area || "",
-      areaUnit: areaUnitOptions.find((opt) => opt.value === property.areaUnit) || null,
+      areaUnit:
+        areaUnitOptions.find((opt) => opt.value === property.areaUnit) || null,
     });
 
     if (property.image) {
-      if (typeof property.image === "string" && property.image.startsWith("http")) {
+      if (
+        typeof property.image === "string" &&
+        property.image.startsWith("http")
+      ) {
         setImagePreview(property.image);
       } else {
         setImagePreview(`http://localhost:3000${property.image}`);
@@ -149,6 +174,7 @@ export default function PropertyTable({
     }
 
     try {
+      setLoading(true);
       await axios.patch(
         `http://localhost:3000/api/user/${selectedProperty._id}`,
         dataToSend,
@@ -161,11 +187,175 @@ export default function PropertyTable({
     } catch (error) {
       console.error("Update failed:", error.response?.data || error.message);
       alert("Failed to update property. Please try again.");
+    } finally {
+      setLoading(false);
     }
   };
 
+  // Handle sort change
+  const handleSortChange = (field) => {
+    if (sortField === field) {
+      setSortDirection(sortDirection === 'asc' ? 'desc' : 'asc');
+    } else {
+      setSortField(field);
+      setSortDirection('asc');
+    }
+  };
+
+  // Handle search filter change
+  const handleSearchChange = (e) => {
+    const { name, value } = e.target;
+    setSearchFilters(prev => ({
+      ...prev,
+      [name]: value
+    }));
+  };
+
+  // Filter and sort data
+  const filteredAndSortedData = useMemo(() => {
+    // First filter the data
+    let result = [...apiData].filter(property => {
+      return (
+        (searchFilters.location === '' || 
+          property.location?.toLowerCase().includes(searchFilters.location.toLowerCase())) &&
+        (searchFilters.city === '' || 
+          property.city?.toLowerCase().includes(searchFilters.city.toLowerCase())) &&
+        (searchFilters.category === '' || 
+          property.category?.toLowerCase().includes(searchFilters.category.toLowerCase())) &&
+        (searchFilters.portionCategory === '' || 
+          property.portionCategory?.toLowerCase().includes(searchFilters.portionCategory.toLowerCase())) &&
+        (searchFilters.buyOrRent === '' || 
+          property.buyOrRent?.toLowerCase().includes(searchFilters.buyOrRent.toLowerCase())) &&
+        (searchFilters.senderName === '' || 
+          property.senderName?.toLowerCase().includes(searchFilters.senderName.toLowerCase()))
+      );
+    });
+
+    // Then sort the filtered data
+    if (sortField) {
+      result.sort((a, b) => {
+        let aValue = a[sortField];
+        let bValue = b[sortField];
+        
+        // Handle numeric fields
+        if (sortField === 'minPrice' || sortField === 'maxPrice') {
+          aValue = parseFloat(aValue) || 0;
+          bValue = parseFloat(bValue) || 0;
+        }
+        
+        if (aValue === bValue) return 0;
+        
+        if (sortDirection === 'asc') {
+          return aValue > bValue ? 1 : -1;
+        } else {
+          return aValue < bValue ? 1 : -1;
+        }
+      });
+    }
+    
+    return result;
+  }, [apiData, searchFilters, sortField, sortDirection]);
+
   return (
     <div className="overflow-x-auto bg-white shadow rounded border border-gray-200 relative">
+      {/* Search and Filter Section */}
+      <div className="p-4 bg-gray-50 border-b">
+        <div className="grid grid-cols-3 gap-4 mb-4">
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Location</label>
+            <input
+              type="text"
+              name="location"
+              value={searchFilters.location}
+              onChange={handleSearchChange}
+              placeholder="Search by location"
+              className="w-full px-3 py-2 border border-gray-300 rounded-md"
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">City</label>
+            <input
+              type="text"
+              name="city"
+              value={searchFilters.city}
+              onChange={handleSearchChange}
+              placeholder="Search by city"
+              className="w-full px-3 py-2 border border-gray-300 rounded-md"
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Category</label>
+            <input
+              type="text"
+              name="category"
+              value={searchFilters.category}
+              onChange={handleSearchChange}
+              placeholder="Search by category"
+              className="w-full px-3 py-2 border border-gray-300 rounded-md"
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Portion</label>
+            <input
+              type="text"
+              name="portionCategory"
+              value={searchFilters.portionCategory}
+              onChange={handleSearchChange}
+              placeholder="Search by portion"
+              className="w-full px-3 py-2 border border-gray-300 rounded-md"
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Purpose</label>
+            <input
+              type="text"
+              name="buyOrRent"
+              value={searchFilters.buyOrRent}
+              onChange={handleSearchChange}
+              placeholder="Buy or Rent"
+              className="w-full px-3 py-2 border border-gray-300 rounded-md"
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Sender Name</label>
+            <input
+              type="text"
+              name="senderName"
+              value={searchFilters.senderName}
+              onChange={handleSearchChange}
+              placeholder="Search by sender name"
+              className="w-full px-3 py-2 border border-gray-300 rounded-md"
+            />
+          </div>
+        </div>
+        
+        {/* Sorting Options */}
+        <div className="flex gap-4">
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Sort By Purpose</label>
+            <select 
+              onChange={() => handleSortChange('buyOrRent')} 
+              className="px-3 py-2 border border-gray-300 rounded-md">
+              <option value="">Select...</option>
+              <option value="buy">Buy</option>
+              <option value="rent">Rent</option>
+            </select>
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Sort By Price</label>
+            <select 
+              onChange={(e) => {
+                setSortField('minPrice');
+                setSortDirection(e.target.value);
+              }} 
+              className="px-3 py-2 border border-gray-300 rounded-md">
+              <option value="">Select...</option>
+              <option value="asc">Low Price</option>
+              <option value="desc">High Price</option>
+            </select>
+          </div>
+        </div>
+      </div>
       <table className="min-w-full text-left text-sm">
         <thead className="bg-gray-100 text-gray-700">
           <tr>
@@ -173,47 +363,69 @@ export default function PropertyTable({
             <th className="px-4 py-2 border">Location</th>
             <th className="px-4 py-2 border">City</th>
             <th className="px-4 py-2 border">Category</th>
+            <th className="px-4 py-2 border">Portion</th>
+            <th className="px-4 py-2 border">Time Requirement</th>
             <th className="px-4 py-2 border">Beds</th>
             <th className="px-4 py-2 border">Bath</th>
             <th className="px-4 py-2 border">Area Size</th>
             <th className="px-4 py-2 border">Area Unit</th>
-            <th className="px-4 py-2 border">Price</th>
+            <th className="px-4 py-2 border">Min Price</th>
+            <th className="px-4 py-2 border">Max Price</th>
             <th className="px-4 py-2 border">Purpose</th>
             <th className="px-4 py-2 border">Dealer Name</th>
-            <th className="px-4 py-2 border">Dealer Email</th> 
+            <th className="px-4 py-2 border">Sender Name</th>
+            <th className="px-4 py-2 border">Phone Number</th>
             <th className="px-4 py-2 border">Actions</th>
           </tr>
         </thead>
         <tbody>
-          {apiData.map((property) => (
-            <tr key={property._id} className="hover:bg-gray-50 transition-colors border-b">
+          {filteredAndSortedData.map((property) => (
+            <tr
+              key={property._id}
+              className="hover:bg-gray-50 transition-colors border-b"
+            >
               <td className="px-4 py-2 border">{property.description}</td>
               <td className="px-4 py-2 border">{property.location}</td>
               <td className="px-4 py-2 border">{property.city}</td>
               <td className="px-4 py-2 border">{property.category}</td>
+              <td className="px-4 py-2 border">{property.portionCategory}</td>
+              <td className="px-4 py-2 border">{property.timeRequirement}</td>
               <td className="px-4 py-2 border">{property.beds}</td>
               <td className="px-4 py-2 border">{property.Bath}</td>
               <td className="px-4 py-2 border">{property.Area}</td>
               <td className="px-4 py-2 border">{property.areaUnit}</td>
               <td className="px-4 py-2 border">
-                {property.price} {property.priceUnit}
+                {property.minPrice} 
+              </td>
+              <td className="px-4 py-2 border">
+                {property.maxPrice}
               </td>
               <td className="px-4 py-2 border">{property.buyOrRent}</td>
-              <td className="px-4 py-2 border">{property.propertyDealerName}</td>
-              <td className="px-4 py-2 border">{property.propertyDealerEmail}</td> 
+              <td className="px-4 py-2 border">
+                {property.propertyDealerName}
+              </td>
+              <td className="px-4 py-2 border">{property.senderName}</td>
+              <td className="px-4 py-2 border whitespace-pre-line">
+                {property.phone?.replace(/(.{11})(?=.)/g, '$1\n')}
+              </td>
               <td className="px-4 py-2 border">
                 <div className="flex gap-2">
                   <button
                     onClick={() => handleEdit(property)}
-                    className="px-2 py-1 cursor-pointer bg-blue-500 text-white rounded text-xs"
+                    className="px-2 py-1 cursor-pointer bg-blue-500 text-white rounded text-xs flex items-center justify-center min-w-[40px]"
                   >
                     Edit
                   </button>
                   <button
                     onClick={() => handleDelete(property._id)}
-                    className="px-2 py-1 cursor-pointer bg-red-500 text-white rounded text-xs"
+                    disabled={deleteLoading[property._id]}
+                    className="px-2 py-1 cursor-pointer bg-red-500 text-white rounded text-xs flex items-center justify-center min-w-[60px]"
                   >
-                    Delete
+                    {deleteLoading[property._id] ? (
+                      <ClipLoader size={12} color="#ffffff" />
+                    ) : (
+                      "Delete"
+                    )}
                   </button>
                 </div>
               </td>
@@ -223,7 +435,7 @@ export default function PropertyTable({
       </table>
 
       {isModalOpen && (
-      <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
           <div className="bg-white rounded-lg shadow-lg p-6 w-full max-w-2xl max-h-[90vh] overflow-y-auto">
             <h2 className="text-xl font-bold mb-4">Edit Property</h2>
             <div className="grid grid-cols-2 gap-4">
@@ -289,7 +501,9 @@ export default function PropertyTable({
                 <Select
                   options={categoryOptions}
                   value={formData.category}
-                  onChange={(selected) => handleSelectChange("category", selected)}
+                  onChange={(selected) =>
+                    handleSelectChange("category", selected)
+                  }
                   className="basic-single"
                   classNamePrefix="select"
                 />
@@ -341,7 +555,9 @@ export default function PropertyTable({
                 <Select
                   options={purposeOptions}
                   value={formData.buyOrRent}
-                  onChange={(selected) => handleSelectChange("buyOrRent", selected)}
+                  onChange={(selected) =>
+                    handleSelectChange("buyOrRent", selected)
+                  }
                   className="basic-single"
                   classNamePrefix="select"
                 />
@@ -380,13 +596,14 @@ export default function PropertyTable({
                 <Select
                   options={areaUnitOptions}
                   value={formData.areaUnit}
-                  onChange={(selected) => handleSelectChange("areaUnit", selected)}
+                  onChange={(selected) =>
+                    handleSelectChange("areaUnit", selected)
+                  }
                   className="basic-single"
                   classNamePrefix="select"
                 />
               </div>
 
-          
               <div className="col-span-2">
                 <label className="block text-sm font-medium text-gray-700 mb-1">
                   Image
@@ -405,7 +622,7 @@ export default function PropertyTable({
                       className="h-32 w-full object-contain rounded self-start"
                       onError={(e) => {
                         e.target.onerror = null;
-                        e.target.src = '/placeholder-image.jpg';
+                        e.target.src = "/placeholder-image.jpg";
                       }}
                     />
                   </div>
@@ -415,15 +632,21 @@ export default function PropertyTable({
             <div className="mt-6 flex justify-end gap-2">
               <button
                 onClick={handleCloseModal}
+                disabled={loading}
                 className="px-4 py-2 cursor-pointer transition-all duration-300 border border-black bg-white hover:bg-black hover:text-white rounded"
               >
                 Close
               </button>
               <button
                 onClick={handleSaveChanges}
-                className="px-4 py-2 cursor-pointer transition-all duration-300 bg-blue-600 hover:bg-blue-700 text-white rounded"
+                disabled={loading}
+                className="px-4 py-2 cursor-pointer transition-all duration-300 bg-blue-600 hover:bg-blue-700 text-white rounded flex items-center justify-center min-w-[120px]"
               >
-                Save Changes
+                {loading ? (
+                  <ClipLoader size={20} color="#ffffff" />
+                ) : (
+                  "Save Changes"
+                )}
               </button>
             </div>
           </div>
@@ -432,3 +655,4 @@ export default function PropertyTable({
     </div>
   );
 }
+

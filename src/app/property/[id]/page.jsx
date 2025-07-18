@@ -10,6 +10,7 @@ import { IoIosCall, IoIosArrowBack } from "react-icons/io";
 import { useRouter } from "next/navigation";
 import dynamic from "next/dynamic";
 import axios from "axios";
+import Loader from "../../components/Loader/Loader";
 
 const MapComponent = dynamic(() => import("../../components/MapComponent"), {
   ssr: false,
@@ -43,14 +44,13 @@ export default function PropertyDetail({ params: paramsPromise }) {
             : item.image?.startsWith("/uploads/")
             ? `http://localhost:3000${item.image}`
             : item.image || "/images/default-property.jpg",
-          price: item.price,
+          price: item.maxPrice || "Unmentioned",
           areaUnit: item.areaUnit,
           beds: item.beds,
           Bath: item.Bath,
           location: item.location,
           Dealer: item.propertyDealerName || "-",
-          DealerEmail: item.propertyDealerEmail || "dealer@example.com",
-          DealerPhone: item.propertyDealerPhone || "3001234567",
+          DealerPhone: item.phone || "3001234567",
           Posted: new Date(item.createdAt).toLocaleDateString(),
           Area: item.Area,
           TotalArea: item.TotalArea,
@@ -100,11 +100,7 @@ export default function PropertyDetail({ params: paramsPromise }) {
   };
 
   if (loading) {
-    return (
-      <div className="w-full h-screen flex items-center justify-center">
-        Loading...
-      </div>
-    );
+    return <Loader />;
   }
 
   if (!property) {
@@ -142,7 +138,7 @@ export default function PropertyDetail({ params: paramsPromise }) {
               <div className="flex-1">
                 <div className="flex items-center justify-between">
                   <h1 className="text-3xl font-bold text-gray-900">
-                    {property.description}
+                    {property.title}
                   </h1>
                   <span
                     className={`px-4 py-2 rounded-full text-sm font-medium ${
@@ -229,12 +225,7 @@ export default function PropertyDetail({ params: paramsPromise }) {
                     readOnly
                     className="w-full border border-gray-300 rounded-md px-3 py-2 bg-gray-100 cursor-not-allowed"
                   />
-                  <input
-                    type="email"
-                    value={property.DealerEmail || "dealer@example.com"} // example fallback
-                    readOnly
-                    className="w-full border border-gray-300 rounded-md px-3 py-2 bg-gray-100 cursor-not-allowed"
-                  />
+                 
                   <div className="flex">
                     <span className="inline-flex items-center px-3 border border-r-0 border-gray-300 bg-gray-100 text-gray-600 text-sm rounded-l-md">
                       +92
@@ -246,14 +237,7 @@ export default function PropertyDetail({ params: paramsPromise }) {
                       className="w-full border border-gray-300 rounded-r-md px-3 py-2 bg-gray-100 cursor-not-allowed"
                     />
                   </div>
-                  <textarea
-                    rows="3"
-                    defaultValue="I would like to inquire about your property"
-                    className="w-full border border-gray-300 rounded-md px-3 py-2"
-                  />
-                  <button className="w-full bg-green-600 hover:bg-green-700 text-white rounded-md px-3 py-2">
-                    Send Inquiry
-                  </button>
+                
                 </form>
 
                 <div className="mt-6 flex justify-between">
@@ -306,7 +290,7 @@ export default function PropertyDetail({ params: paramsPromise }) {
                   />
                 </div>
                 <div className="p-4">
-                  <h4 className="text-lg font-semibold">{prop.description}</h4>
+                  <h4 className="text-lg font-semibold">{prop.title}</h4>
                   <p className="text-gray-600 mt-1">{prop.location}</p>
                   <div className="mt-3 flex items-center justify-between">
                     <span className="text-green-600 font-medium">

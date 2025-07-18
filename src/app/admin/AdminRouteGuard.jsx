@@ -1,8 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useClerk, useUser } from "@clerk/nextjs";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 
 const ADMIN_ROUTES = [
   "/admin",
@@ -14,31 +13,27 @@ const ADMIN_ROUTES = [
 
 export default function AdminRouteGuard({ children }) {
   const router = useRouter();
-  const { signOut } = useClerk();
-  const { user, isLoaded } = useUser();
+  const [isAuthenticated, setIsAuthenticated] = useState(true); // Assume authenticated for now
+  const [isLoading, setIsLoading] = useState(false);
 
   useEffect(() => {
-    if (!isLoaded) return;
-
     // Check if current route is an admin route
     const isAdminRoute = ADMIN_ROUTES.some((route) =>
       window.location.pathname.startsWith(route)
     );
 
     if (!isAdminRoute) {
-      // If user navigates outside admin routes, sign them out
-      signOut(() => router.push("/sign-in"));
+      // If user navigates outside admin routes, redirect to sign-in
+      // You can implement your own authentication check here
+      router.push("/sign-in");
       return;
     }
 
-    // Add your admin role check here if needed
-    // For example, check user.publicMetadata.isAdmin
-    if (!user /* || !user.publicMetadata.isAdmin */) {
-      signOut(() => router.push("/sign-in"));
-    }
-  }, [isLoaded, user, router, signOut]);
+    // Here you would check if the user is authenticated
+    // For now, we'll assume they are
+  }, [router]);
 
-  if (!isLoaded || !user) {
+  if (isLoading) {
     return (
       <div className="w-full h-screen flex justify-center items-center">
         <div className="w-12 h-12 border-4 bg-pink-500 border-t-transparent border-white rounded-full animate-spin"></div>
