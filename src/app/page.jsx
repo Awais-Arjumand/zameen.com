@@ -1,13 +1,18 @@
 "use client";
+
 import { useState, useEffect } from "react";
 import PropertySearchFilter from "./components/PropertySearchFilter/PropertySearchFilter";
 import HomeDetails from "./components/HomeDetails/HomeDetails";
 import HousesBoxes from "./components/HousesBoxes/HousesBoxes";
+import Loader from "./components/Loader/Loader";
 import axios from "axios";
+import { useUser } from "@clerk/nextjs";
+import { useSearchParams } from "next/navigation";
+
 const BACKEND_URL = "http://localhost:3000";
+
 const mapAPIData = (apiData) => {
   return apiData.map((item) => {
-    // Handle image URL construction
     let imageUrl = "/images/default-property.jpg";
     if (item.image) {
       if (item.image.startsWith("http")) {
@@ -31,14 +36,13 @@ const mapAPIData = (apiData) => {
               : img
           )
         : [],
-      price: item.price,
+      price: item.maxPrice || item.minPrice || "Unmentioned",
       beds: item.beds,
       Bath: item.Bath,
       location: item.location,
       Area: item.Area,
       TotalArea: item.TotalArea,
       areaUnit: item.areaUnit,
-      priceUnit: item.priceUnit,
       description: item.description,
       city: item.city,
       buyOrRent: item.buyOrRent,
@@ -54,6 +58,9 @@ export default function Home() {
   const [filteredData, setFilteredData] = useState([]);
   const [filters, setFilters] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
+  const { isSignedIn, user } = useUser();
+  const [userPosted, setUserPosted] = useState(false);
+  const searchParams = useSearchParams();
 
   useEffect(() => {
     const fetchAPI = async () => {
@@ -63,7 +70,27 @@ export default function Home() {
         const apiData = response.data.data;
         const mapped = mapAPIData(apiData);
         setHouseData(mapped);
-        setFilteredData(mapped);
+
+        if (searchParams.toString()) {
+          // Inside Home useEffect (fetchAPI)
+          const urlFilters = {
+            purpose: searchParams.get("purpose") || "",
+            category: searchParams.get("category") || "",
+            city: searchParams.get("city") || "",
+            location: searchParams.get("location") || "",
+            areaMin: searchParams.get("areaMin") || "0",
+            areaMax: searchParams.get("areaMax") || "Any",
+            priceMin: searchParams.get("priceMin") || "0",
+            priceMax: searchParams.get("priceMax") || "Any",
+            beds: searchParams.get("beds") || "All",
+            baths: searchParams.get("baths") || "All",
+            keyword: searchParams.get("keyword") || "",
+          };
+
+          handleFilter(urlFilters);
+        } else {
+          setFilteredData(mapped);
+        }
       } catch (error) {
         console.error("Error fetching properties:", error);
       } finally {
@@ -72,13 +99,37 @@ export default function Home() {
     };
 
     fetchAPI();
-  }, []);
+  }, [searchParams]);
+
+  useEffect(() => {
+    if (isSignedIn && user && !userPosted) {
+      const userInfo = {
+        email: user.primaryEmailAddress?.emailAddress,
+        fullName: user.firstName,
+        lastName: user.lastName,
+        clerkId: user.id,
+      };
+
+      axios
+        .get(`http://localhost:3000/api/users/check?email=${userInfo.email}`)
+        .then((response) => {
+          if (!response.data.exists) {
+            return axios
+              .post("http://localhost:3000/api/users", userInfo)
+              .then(() => setUserPosted(true));
+          }
+          setUserPosted(true);
+        })
+        .catch((err) => {
+          console.error("API Error:", err);
+        });
+    }
+  }, [isSignedIn, user, userPosted]);
 
   const handleFilter = (filterValues) => {
     setFilters(filterValues);
 
     const filtered = houseData.filter((property) => {
-      // Purpose filter
       if (
         filterValues.purpose &&
         property.buyOrRent.toLowerCase() !== filterValues.purpose.toLowerCase()
@@ -86,7 +137,6 @@ export default function Home() {
         return false;
       }
 
-      // City filter
       if (
         filterValues.city &&
         property.city.toLowerCase() !== filterValues.city.toLowerCase()
@@ -94,7 +144,13 @@ export default function Home() {
         return false;
       }
 
-      // Location filter
+      if (
+        filterValues.category &&
+        property.category?.toLowerCase() !== filterValues.category.toLowerCase()
+      ) {
+        return false;
+      }
+
       if (
         filterValues.location &&
         !property.location
@@ -104,7 +160,6 @@ export default function Home() {
         return false;
       }
 
-      // Beds filter
       if (filterValues.beds !== "All") {
         if (filterValues.beds === "5+" && parseInt(property.beds) < 5) {
           return false;
@@ -116,7 +171,6 @@ export default function Home() {
         }
       }
 
-      // Baths filter
       if (filterValues.baths !== "All") {
         if (filterValues.baths === "5+" && parseInt(property.Bath) < 5) {
           return false;
@@ -128,7 +182,6 @@ export default function Home() {
         }
       }
 
-      // Area filter
       if (filterValues.areaMin !== "0" || filterValues.areaMax !== "Any") {
         const propertyArea = parseInt(property.Area);
         const isKanal = property.TotalArea === "Kanal";
@@ -149,7 +202,6 @@ export default function Home() {
         }
       }
 
-      // Price filter
       if (filterValues.priceMin !== "0" || filterValues.priceMax !== "Any") {
         const propertyPrice = parseFloat(property.price);
 
@@ -164,7 +216,6 @@ export default function Home() {
         }
       }
 
-      // Keyword filter
       if (filterValues.keyword) {
         const keyword = filterValues.keyword.toLowerCase();
         if (
@@ -188,15 +239,21 @@ export default function Home() {
   };
 
   if (isLoading) {
-    return (
-      <div className="w-full h-screen flex items-center justify-center">
-        <div className="text-2xl font-semibold">Loading properties...</div>
-      </div>
-    );
+    return <Loader />;
   }
 
   return (
     <div className="w-full h-fit border border-black pt-5 pb-10 px-5 flex flex-col gap-y-8">
+      {isSignedIn && user && (
+        <div className="mb-4 p-4 bg-green-100 border border-green-300 rounded">
+          <div className="font-bold">
+            Welcome, {user.firstName} {user.lastName}!
+          </div>
+          <div className="text-sm text-gray-700">
+            Email: {user.primaryEmailAddress?.emailAddress}
+          </div>
+        </div>
+      )}
       <PropertySearchFilter onFilter={handleFilter} />
       <HomeDetails
         houseData={filters ? filteredData : houseData}
@@ -207,3 +264,5 @@ export default function Home() {
     </div>
   );
 }
+
+

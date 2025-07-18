@@ -1,14 +1,40 @@
 "use client";
 
-import { ClerkProvider } from "@clerk/nextjs";
 import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
+import { usePathname } from "next/navigation";
+import { useState, useEffect } from "react";
+import NavBar from "./NavBar/NavBar";
+import Footer from "./Footer/Footer";
+import Loader from "./Loader/Loader";
 
 export default function ClientLayout({ children }) {
-  return (
-    <ClerkProvider>
-      {children}
+  const pathname = usePathname();
+  const isAdmin = pathname.startsWith("/admin");
+  const isUserRole = pathname.startsWith("/user-role");
+  const hideNavFooter =
+    pathname.startsWith("/dealer-panel-login") ||
+    pathname.startsWith("/dealer-panel");
+    
+  const [loading, setLoading] = useState(true);
+  
+  useEffect(() => {
+    // Simulate page loading
+    setLoading(true);
+    
+    const timer = setTimeout(() => {
+      setLoading(false);
+    }, 800); // Show loader for 800ms on each page transition
+    
+    return () => clearTimeout(timer);
+  }, [pathname]);
 
+  return (
+    <>
+      {loading && <Loader />}
+      {!isAdmin && !isUserRole && !hideNavFooter && <NavBar />}
+      {children}
+      {!isAdmin && !isUserRole && !hideNavFooter && <Footer />}
       <ToastContainer
         position="top-right"
         autoClose={3000}
@@ -21,6 +47,6 @@ export default function ClientLayout({ children }) {
         pauseOnHover
         theme="dark"
       />
-    </ClerkProvider>
+    </>
   );
 }

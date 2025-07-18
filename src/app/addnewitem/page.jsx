@@ -1,7 +1,7 @@
 "use client";
 import React, { useRef, useState } from "react";
 import axios from "axios";
-import { useRouter } from "next/navigation"; // Updated import for Next.js 13+
+import { useRouter } from "next/navigation";
 import LocationAndCity from "../components/AddNewItem/LocationAndCity/LocationAndCity";
 import AreaAndPrice from "../components/AddNewItem/AreaAndPrice/AreaAndPrice";
 import FeatureandAmenities from "../components/AddNewItem/FeatureandAmenities/FeatureandAmenities";
@@ -12,7 +12,7 @@ import { useUser } from "@clerk/nextjs";
 
 const Page = () => {
   const { user } = useUser();
-  const router = useRouter(); // Initialize the router
+  const router = useRouter();
   const locationAndCityRef = useRef(null);
   const areaAndPriceRef = useRef(null);
   const featureAndAmenitiesRef = useRef(null);
@@ -24,7 +24,7 @@ const Page = () => {
   const handleSubmit = async () => {
     setIsSubmitting(true);
     try {
-      // Get data from all components
+      // ✅ 1. Collect data
       const locationData = locationAndCityRef.current?.getData() || {};
       const areaPriceData = areaAndPriceRef.current?.getData() || {};
       const featuresData = featureAndAmenitiesRef.current?.getData() || {};
@@ -32,90 +32,68 @@ const Page = () => {
       const contactData = contactInformationRef.current?.getData() || {};
       const mediaData = propertyImagesAndVideosRef.current?.getData() || {};
 
-      // Console log all selected values for debugging
-      console.log("Location Data:", locationData);
-      console.log("Area & Price Data:", areaPriceData);
-      console.log("Features Data:", featuresData);
-      console.log("Ad Info Data:", adInfoData);
-      console.log("Contact Data:", contactData);
-      console.log("Media Data:", mediaData);
-
-      // Validate required fields
+      // ✅ 2. Validate required fields
       const errors = [];
       if (!adInfoData.category) errors.push("Category is required");
       if (!adInfoData.buyOrRent) errors.push("Buy/Rent selection is required");
       if (!locationData.city) errors.push("City is required");
       if (!locationData.location) errors.push("Location is required");
       if (!areaPriceData.area) errors.push("Area is required");
-      if (!areaPriceData.price) errors.push("Price is required");
+      if (!areaPriceData.minPrice) errors.push("Minimum price is required");
+      if (!areaPriceData.maxPrice) errors.push("Maximum price is required");
+      if (errors.length > 0) throw new Error(errors.join("\n"));
 
-      if (errors.length > 0) {
-        throw new Error(errors.join("\n"));
-      }
-
-      // Prepare form data (✅ FIXED KEY for email)
+      // ✅ 3. Prepare main data
       const formData = {
         city: locationData.city,
         location: locationData.location,
         Area: areaPriceData.area,
-        areaUnit: areaPriceData.areaUnit, // Add area unit
+        areaUnit: areaPriceData.areaUnit,
         TotalArea: areaPriceData.totalArea || areaPriceData.area,
-        price: Number(areaPriceData.price),
-        priceUnit: areaPriceData.priceUnit, // Add price unit
+        minPrice: Number(areaPriceData.minPrice),
+        maxPrice: Number(areaPriceData.maxPrice),
+        priceUnit: areaPriceData.priceUnit,
         beds: Number(featuresData.bedrooms) || 0,
         Bath: Number(featuresData.bathrooms) || 0,
         category: adInfoData.category,
         buyOrRent: adInfoData.buyOrRent,
         description: adInfoData.description || "",
-        propertyDealerEmail: contactData.email, // ✅ FIXED KEY HERE
+        propertyDealerEmail: contactData.email,
         propertyDealerName: `${(user?.firstName || "") + " " + (user?.lastName || "")}`.trim(),
       };
 
-      // Log final form data and media for verification
-      console.log("Final Form Data:", formData);
-      console.log("Media Data (images/videos):", mediaData);
+      console.log("✅ Final Form Data:", formData);
 
-      // Create FormData for multipart upload
+      // ✅ 4. Check for duplicates
+
+      // ✅ 5. Prepare FormData for files
       const apiFormData = new FormData();
-
-      // Append all form fields
       Object.entries(formData).forEach(([key, value]) => {
-        if (value !== undefined && value !== null) {
-          apiFormData.append(key, value);
-        }
+        apiFormData.append(key, value);
       });
 
-      // Append images
       if (mediaData.images?.length > 0) {
-        mediaData.images.forEach((image) => {
-          apiFormData.append("images", image);
-        });
+        mediaData.images.forEach((img) => apiFormData.append("images", img));
       }
-
-      // Append video
       if (mediaData.video) {
         apiFormData.append("video", mediaData.video);
       }
 
-      // Send to backend
+      // ✅ 6. Send POST request
       const response = await axios.post(
         "http://localhost:3000/api/user",
         apiFormData,
-        {
-          headers: {
-            "Content-Type": "multipart/form-data",
-          },
-        }
+        { headers: { "Content-Type": "multipart/form-data" } }
       );
 
       if (response.status === 201) {
-        alert("Property submitted successfully!");
-        router.push("/admin"); // Or your actual admin route
+        alert("✅ Property submitted successfully!");
+        router.push("/dealer-panel"); // Redirect to dealer panel
       } else {
-        throw new Error(response.data.message || "Failed to create property");
+        throw new Error(response.data.message || "Something went wrong!");
       }
     } catch (error) {
-      console.error("Submission error:", error);
+      console.error("❌ Submission Error:", error);
       alert(error.message || "An error occurred. Please try again.");
     } finally {
       setIsSubmitting(false);

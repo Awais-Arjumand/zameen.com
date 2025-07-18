@@ -1,6 +1,5 @@
 @import "tailwindcss";
 
-
 .react-select-container .react-select__control {
   background-color: white;
   border-color: silver;
@@ -64,7 +63,8 @@
   z-index: 0 !important;
 }
 
-.leaflet-top, .leaflet-bottom {
+.leaflet-top,
+.leaflet-bottom {
   z-index: 0 !important;
 }
 
@@ -88,8 +88,8 @@
 }
 
 .pagination li.active {
-  background-color: #1d4ed8;
-  color: white;
+  background-color: #1d4ed8 !important;
+  color: white !important;
   font-weight: bold;
 }
 

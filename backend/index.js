@@ -5,6 +5,7 @@ import mongoose from "mongoose";
 import path from "path";
 
 import router from "./routes/properties.js";
+import userRouter from "./routes/user.js";
 
 dotenv.config();
 
@@ -25,11 +26,11 @@ const MONGODB_URI = process.env.MONGODB_URI;
 
 mongoose
   .connect(MONGODB_URI)
-  .then(() => console.log("✅ Connected to MongoDB"))
-  .catch((err) => console.error("❌ MongoDB connection error:", err));
-
+  .then(() => console.log("✅ MongoDB connected!"))
+  .catch((err) => console.error("❌ MongoDB connection failed:", err));
 // Routes
 app.use("/api", router);
+app.use("/api/users", userRouter);
 
 app.listen(PORT, () => {
   console.log(`🚀 Server running at http://localhost:${PORT}`);

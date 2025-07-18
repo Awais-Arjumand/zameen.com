@@ -1,72 +1,39 @@
+
 import mongoose, { Schema } from "mongoose";
 
 const PropertySchema = new Schema(
   {
-    Area: {
+    title: { type: String }, 
+    Area: { type: String },
+    areaUnit: { type: String },
+    TotalArea: { type: String },
+    description: { type: String },
+    image: { type: String },
+    images: [{ type: String }],
+    video: { type: String },
+    price: { type: String },
+    priceUnit: { type: String },
+    minPrice: { type: String },
+    maxPrice: { type: String },
+    portionCategory: { type: String },
+    location: { type: String },
+    category: { type: String },
+    beds: { type: Number },
+    Bath: { type: Number },
+    city: { type: String },
+    buyOrRent: { type: String },
+    timeRequirement: { type: String },
+   senderName: { 
       type: String,
-      required: true,
-    },
-    areaUnit: {
-      type: String,
-      required: false,
-    },
-    TotalArea: {
-      type: String,
-      required: true,
-    },
-    description: {
-      type: String,
-      required: true,
-    },
-    image: {
-      type: String,
-      required: false,
-    },
-    images: [
-      {
-        type: String,
-        required: false,
-      },
-    ],
-    video: {
-      type: String,
-      required: false,
-    },
-    price: {
-      type: Number,
-      required: true,
-    },
-    priceUnit: {
-      type: String,
-      required: false,
-    },
-    location: {
-      type: String,
-      required: true,
-    },
-    category: {
-      type: String,
-      required: true,
-    },
-    beds: {
-      type: Number,
-      required: true,
-    },
-    Bath: {
-      type: Number,
-      required: true,
-    },
-    city: {
-      type: String,
-      required: true,
-    },
-    buyOrRent: {
-      type: String,
-      required: true,
-    },
+      set: function(name) {
+        if (!name) return name;
+        return name.split(' ')
+          .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+          .join(' ');
+      }
+    },// ✅ Auto-capitalizes first letter of each word
     propertyDealerName: {
       type: String,
-      required: true,
       validate: {
         validator: function (v) {
           return v.trim().split(/\s+/).length >= 2;
@@ -77,11 +44,12 @@ const PropertySchema = new Schema(
     },
     propertyDealerEmail: {
       type: String,
-      required: true,
       match: [/\S+@\S+\.\S+/, "is invalid"],
     },
+    phone: { type: String },
   },
   { timestamps: true }
 );
 
 export const Property = mongoose.model("Property", PropertySchema);
+
