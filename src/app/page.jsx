@@ -6,7 +6,6 @@ import HomeDetails from "./components/HomeDetails/HomeDetails";
 import HousesBoxes from "./components/HousesBoxes/HousesBoxes";
 import Loader from "./components/Loader/Loader";
 import axios from "axios";
-import { useUser } from "@clerk/nextjs";
 import { useSearchParams } from "next/navigation";
 
 const BACKEND_URL = "http://localhost:3000";
@@ -58,7 +57,6 @@ export default function Home() {
   const [filteredData, setFilteredData] = useState([]);
   const [filters, setFilters] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
-  const { isSignedIn, user } = useUser();
   const [userPosted, setUserPosted] = useState(false);
   const searchParams = useSearchParams();
 
@@ -101,30 +99,6 @@ export default function Home() {
     fetchAPI();
   }, [searchParams]);
 
-  useEffect(() => {
-    if (isSignedIn && user && !userPosted) {
-      const userInfo = {
-        email: user.primaryEmailAddress?.emailAddress,
-        fullName: user.firstName,
-        lastName: user.lastName,
-        clerkId: user.id,
-      };
-
-      axios
-        .get(`http://localhost:3000/api/users/check?email=${userInfo.email}`)
-        .then((response) => {
-          if (!response.data.exists) {
-            return axios
-              .post("http://localhost:3000/api/users", userInfo)
-              .then(() => setUserPosted(true));
-          }
-          setUserPosted(true);
-        })
-        .catch((err) => {
-          console.error("API Error:", err);
-        });
-    }
-  }, [isSignedIn, user, userPosted]);
 
   const handleFilter = (filterValues) => {
     setFilters(filterValues);
@@ -244,16 +218,7 @@ export default function Home() {
 
   return (
     <div className="w-full h-fit border border-black pt-5 pb-10 px-5 flex flex-col gap-y-8">
-      {isSignedIn && user && (
-        <div className="mb-4 p-4 bg-green-100 border border-green-300 rounded">
-          <div className="font-bold">
-            Welcome, {user.firstName} {user.lastName}!
-          </div>
-          <div className="text-sm text-gray-700">
-            Email: {user.primaryEmailAddress?.emailAddress}
-          </div>
-        </div>
-      )}
+     
       <PropertySearchFilter onFilter={handleFilter} />
       <HomeDetails
         houseData={filters ? filteredData : houseData}

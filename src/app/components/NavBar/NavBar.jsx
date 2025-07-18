@@ -5,7 +5,6 @@ import { UserButton, useUser } from "@clerk/nextjs";
 
 const NavBar = ({ isAdmin = false }) => {
   const [isMobile, setIsMobile] = useState(false);
-  const { isSignedIn, user } = useUser();
 
   useEffect(() => {
     const checkScreenSize = () => {
@@ -26,21 +25,13 @@ const NavBar = ({ isAdmin = false }) => {
         </h1>
 
         <div className="flex h-fit w-fit items-center gap-x-4">
-          {!isSignedIn ? (
             <Link
               className="rounded-lg border border-black px-3 py-2 text-base font-semibold transition-all duration-300 hover:bg-black hover:text-white"
               href={isAdmin ? "/admin/login" : "/login"}
             >
               Login
             </Link>
-          ) : (
-            <div className="flex items-center gap-4">
-              <span className="text-sm font-medium">
-                {user.firstName} {user.lastName}
-              </span>
-              <UserButton afterSignOutUrl={isAdmin ? "/admin/login" : "/"} />
-            </div>
-          )}
+        
           {!isAdmin && (
             <Link
               className="rounded-lg bg-green-500 px-3 py-2 text-base font-semibold text-white transition-all duration-300 hover:bg-green-700"
