@@ -1,8 +1,6 @@
 "use client";
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { generateOTP, sendOTP } from '../../../lib/twilio';
-import clientPromise from '../../../lib/mongodb';
 
 export default function SignUp() {
   const [phone, setPhone] = useState('');
@@ -16,28 +14,21 @@ export default function SignUp() {
     setError('');
 
     try {
-      const client = await clientPromise;
-      const db = client.db();
+      // Use API route instead of direct MongoDB access
+      const response = await fetch('/api/auth/signup', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ phone }),
+      });
+
+      const data = await response.json();
       
-      // Check if phone number already exists
-      const existingUser = await db.collection('users').findOne({ phone });
-      if (existingUser) {
-        setError('Phone number already registered');
-        setLoading(false);
+      if (!response.ok) {
+        setError(data.message || 'Failed to sign up');
         return;
       }
-      
-      // Generate and send OTP
-      const otp = generateOTP();
-      await sendOTP(phone, otp);
-      
-      // Create user with OTP (not verified yet)
-      await db.collection('users').insertOne({
-        phone,
-        verificationCode: otp,
-        verified: false,
-        createdAt: new Date(),
-      });
       
       // Redirect to verification page
       router.push(`/auth/verify?phone=${encodeURIComponent(phone)}`);
