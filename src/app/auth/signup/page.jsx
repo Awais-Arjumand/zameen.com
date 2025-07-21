@@ -1,6 +1,6 @@
 "use client";
 import { useState } from 'react';
-import { useRouter } from 'next/router';
+import { useRouter } from 'next/navigation';
 import { generateOTP, sendOTP } from '../../../lib/twilio';
 import clientPromise from '../../../lib/mongodb';
 
@@ -40,10 +40,7 @@ export default function SignUp() {
       });
       
       // Redirect to verification page
-      router.push({
-        pathname: '/auth/verify',
-        query: { phone }
-      });
+      router.push(`/auth/verify?phone=${encodeURIComponent(phone)}`);
     } catch (err) {
       setError('Failed to send verification code');
       console.error(err);
