@@ -5,10 +5,8 @@ import { useState, useEffect } from "react";
 import PropertyTable from "./PropertyTable";
 import AdminHeader from "./AdminHeader";
 import { useRouter } from "next/navigation";
-import { useUser } from "@clerk/nextjs";
 
 export default function AdminPageClient({ apiData = [] }) {
-  const { user } = useUser(); // Get Clerk user data
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const router = useRouter();
@@ -64,15 +62,14 @@ export default function AdminPageClient({ apiData = [] }) {
       <AdminHeader />
 
       <div className="w-full flex justify-between items-center">
-        <h1 className="mb-8 text-2xl font-semibold">
-          Welcome, {user?.fullName || user?.email || "Admin"}
-        </h1>
+       <div></div>
         
         <button
           onClick={handleRefresh}
           disabled={isRefreshing}
           className={`px-4 py-2 rounded-md cursor-pointer transition-all duration-300 flex items-center gap-2 ${isRefreshing ? 'bg-gray-300' : 'bg-blue-500 hover:bg-blue-600'} text-white`}
         >
+          
           <svg className={`w-5 h-5 ${isRefreshing ? 'animate-spin' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
           </svg>

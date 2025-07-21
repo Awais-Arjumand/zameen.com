@@ -48,5 +48,6 @@ export default function ClientLayout({ children }) {
         theme="dark"
       />
     </>
+
   );
 }

@@ -4,7 +4,6 @@
 import { useRouter } from "next/navigation";
 import axios from "axios";
 import { useState, useMemo } from "react";
-import { ClipLoader } from "react-spinners";
 import Select from "react-select";
 
 export default function PropertyTable({
@@ -406,7 +405,7 @@ export default function PropertyTable({
               </td>
               <td className="px-4 py-2 border">{property.senderName}</td>
               <td className="px-4 py-2 border whitespace-pre-line">
-                {property.phone?.replace(/(.{11})(?=.)/g, '$1\n')}
+                {property.phone?.replace(/(.{12})(?=.)/g, '$1\n')}
               </td>
               <td className="px-4 py-2 border">
                 <div className="flex gap-2">
@@ -421,11 +420,7 @@ export default function PropertyTable({
                     disabled={deleteLoading[property._id]}
                     className="px-2 py-1 cursor-pointer bg-red-500 text-white rounded text-xs flex items-center justify-center min-w-[60px]"
                   >
-                    {deleteLoading[property._id] ? (
-                      <ClipLoader size={12} color="#ffffff" />
-                    ) : (
-                      "Delete"
-                    )}
+                    Delete
                   </button>
                 </div>
               </td>
