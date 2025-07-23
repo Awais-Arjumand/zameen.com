@@ -22,12 +22,12 @@ const HousesBoxes = ({ houseData }) => {
   return (
     <div
       ref={housesRef}
-      className="w-full h-fit border border-gray-300 rounded-lg flex flex-col gap-y-8"
+      className="w-full h-fit  rounded-lg flex flex-col gap-y-2"
     >
-      <div className="w-full h-10 border border-gray-300 flex items-center justify-center bg-white px-3">
-        <h1 className="flex gap-x-3 items-center font-semibold">
-          {startIndex + 1} to {endIndex} of {totalItems} Properties
-        </h1>
+      <div className="w-full h-10 border-b border-gray-300 flex items-center justify-start bg-[#fafafa] px-3 pb-4">
+        <p className="text-gray-700 font-medium text-base">
+          Showing {startIndex + 1}-{endIndex} of {totalItems} Listings
+        </p>
       </div>
 
       <div className="w-full h-fit bg-[#f7f8fa] px-3 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 py-5">

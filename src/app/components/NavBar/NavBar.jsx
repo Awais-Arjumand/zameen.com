@@ -28,10 +28,12 @@ const NavBar = ({ isAdmin = false }) => {
       // Fetch user data when authenticated
       const fetchUserData = async () => {
         try {
-          const response = await fetch('http://localhost:3000/api/users');
+          const response = await fetch("http://localhost:3000/api/users");
           const data = await response.json();
           if (data.data) {
-            const currentUser = data.data.find(user => user.phone === session.user.phone);
+            const currentUser = data.data.find(
+              (user) => user.phone === session.user.phone
+            );
             if (currentUser) {
               setUserData(currentUser);
             }
@@ -56,12 +58,12 @@ const NavBar = ({ isAdmin = false }) => {
 
   return (
     <nav className="w-full bg-white shadow-md">
-      <div className="flex h-fit items-center justify-between gap-x-4 shadow-lg bg-[#f7f7f7] px-4 py-4 text-sm text-gray-700 md:flex lg:px-16">
+      <div className="flex h-fit items-center justify-between gap-x-4 shadow-lg bg-[#f7f7f7] px-4 py-4 text-sm text-gray-700 md:flex lg:px-12">
         <Link href={"/"} className="text-2xl font-bold text-gray-500">
-          <Image 
-            alt="Nav Logo" 
-            src={"../images/Login/img2.svg"} 
-            width={150} 
+          <Image
+            alt="Nav Logo"
+            src={"../images/Login/img2.svg"}
+            width={150}
             height={150}
             className="w-32 md:w-40"
           />
@@ -71,7 +73,7 @@ const NavBar = ({ isAdmin = false }) => {
           {!isAdmin && (
             <Link
               className="flex rounded bg-[#3B404C] px-4 py-1.5 justify-center items-center w-fit h-fit text-xs font-normal text-white transition-all duration-300 hover:bg-gray-500"
-              href="/dealer-panel-login"
+              href={isAuthenticated ? "/dealer-panel" : "/auth/signin"}
             >
               My Property
             </Link>
@@ -94,7 +96,9 @@ const NavBar = ({ isAdmin = false }) => {
                   <p className="text-sm font-medium text-gray-700">
                     {userData?.firstName} {userData?.lastName}
                   </p>
-                  <p className="text-xs text-gray-500">{session?.user?.phone}</p>
+                  <p className="text-xs text-gray-500">
+                    {session?.user?.phone}
+                  </p>
                 </div>
                 <div className="h-10 w-10 rounded-full bg-gray-300 flex items-center justify-center overflow-hidden">
                   {userData?.firstName ? (
@@ -145,11 +149,11 @@ const NavBar = ({ isAdmin = false }) => {
       </div>
 
       {/* Mobile menu button */}
-      {isMobile && isAuthenticated && (
+      {isMobile && !isAdmin && (
         <div className="flex justify-between items-center p-4 md:hidden">
           <Link
             className="rounded bg-[#3B404C] px-4 py-1.5 flex justify-center items-center w-fit h-fit text-xs font-normal text-white transition-all duration-300 hover:bg-gray-500"
-            href="/dealer-panel-login"
+            href={isAuthenticated ? "/dealer-panel" : "/auth/signin"}
           >
             My Property
           </Link>

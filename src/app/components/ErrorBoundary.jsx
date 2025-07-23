@@ -1,4 +1,3 @@
-// app/components/ErrorBoundary.tsx
 "use client";
 
 import { ErrorBoundary as ReactErrorBoundary } from "react-error-boundary";

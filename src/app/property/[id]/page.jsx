@@ -113,7 +113,7 @@ export default function PropertyDetail({ params: paramsPromise }) {
 
   return (
     <div className="w-full min-h-screen bg-gray-50 py-8 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-6xl mx-auto">
+      <div className="max-w-full mx-auto">
         <Link
           href="/"
           className="flex items-center text-green-600 hover:text-green-800 mb-6"
@@ -225,7 +225,7 @@ export default function PropertyDetail({ params: paramsPromise }) {
                     readOnly
                     className="w-full border border-gray-300 rounded-md px-3 py-2 bg-gray-100 cursor-not-allowed"
                   />
-                 
+
                   <div className="flex">
                     <span className="inline-flex items-center px-3 border border-r-0 border-gray-300 bg-gray-100 text-gray-600 text-sm rounded-l-md">
                       +92
@@ -237,7 +237,6 @@ export default function PropertyDetail({ params: paramsPromise }) {
                       className="w-full border border-gray-300 rounded-r-md px-3 py-2 bg-gray-100 cursor-not-allowed"
                     />
                   </div>
-                
                 </form>
 
                 <div className="mt-6 flex justify-between">
@@ -270,7 +269,7 @@ export default function PropertyDetail({ params: paramsPromise }) {
         </div>
 
         {/* Similar Properties */}
-        {/* <div className="mt-12">
+        <div className="mt-12">
           <h3 className="text-xl font-semibold text-gray-900 mb-6">
             Similar Properties
           </h3>
@@ -322,7 +321,7 @@ export default function PropertyDetail({ params: paramsPromise }) {
               </div>
             ))}
           </div>
-        </div> */}
+        </div>
       </div>
     </div>
   );

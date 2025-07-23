@@ -1,4 +1,3 @@
-// app/admin/page.tsx
 "use server";
 
 import AdminRouteGuard from "./AdminRouteGuard";
