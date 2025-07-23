@@ -17,14 +17,14 @@ const PropertySearchFilter = ({ onFilter }) => {
 
   const [filters, setFilters] = useState({
     purpose: searchParams.get("purpose") || "",
-    paths: searchParams.get("paths") || "",
     category: searchParams.get("category") || "",
+    city: searchParams.get("city") || "",
+    beds: searchParams.get("beds") || "",
+    baths: searchParams.get("baths") || "",
     areaMin: searchParams.get("areaMin") || "",
     areaMax: searchParams.get("areaMax") || "",
-    search: searchParams.get("search") || "",
     priceMin: searchParams.get("priceMin") || "",
     priceMax: searchParams.get("priceMax") || "",
-    code: searchParams.get("code") || "",
     location: searchParams.get("location") || "",
     keyword: searchParams.get("keyword") || "",
   });
@@ -42,14 +42,14 @@ const PropertySearchFilter = ({ onFilter }) => {
     const params = new URLSearchParams();
 
     if (filters.purpose) params.set("purpose", filters.purpose);
-    if (filters.paths) params.set("paths", filters.paths);
     if (filters.category) params.set("category", filters.category);
+    if (filters.city) params.set("city", filters.city);
+    if (filters.beds) params.set("beds", filters.beds);
+    if (filters.baths) params.set("baths", filters.baths);
     if (filters.areaMin) params.set("areaMin", filters.areaMin);
     if (filters.areaMax) params.set("areaMax", filters.areaMax);
-    if (filters.search) params.set("search", filters.search);
     if (filters.priceMin) params.set("priceMin", filters.priceMin);
     if (filters.priceMax) params.set("priceMax", filters.priceMax);
-    if (filters.code) params.set("code", filters.code);
     if (filters.location) params.set("location", filters.location);
     if (filters.keyword) params.set("keyword", filters.keyword);
 
@@ -61,11 +61,6 @@ const PropertySearchFilter = ({ onFilter }) => {
     { value: "Rent", label: "Rent" },
   ];
 
-  const pathsOptions = [
-    { value: "Residential", label: "Residential" },
-    { value: "Commercial", label: "Commercial" },
-  ];
-
   const categoryOptions = [
     { value: "House", label: "House" },
     { value: "Plot", label: "Plot" },
@@ -73,16 +68,35 @@ const PropertySearchFilter = ({ onFilter }) => {
     { value: "Apartment", label: "Apartment" },
   ];
 
-  const searchOptions = [
-    { value: "Latest", label: "Latest" },
-    { value: "Popular", label: "Popular" },
-    { value: "Featured", label: "Featured" },
+  const cityOptions = [
+    { value: "Karachi", label: "Karachi" },
+    { value: "Lahore", label: "Lahore" },
+    { value: "Islamabad", label: "Islamabad" },
+    { value: "Faisalabad", label: "Faisalabad" },
+    { value: "Rawalpindi", label: "Rawalpindi" },
+
   ];
 
-  const codeOptions = [
-    { value: "A1", label: "A1" },
-    { value: "B2", label: "B2" },
-    { value: "C3", label: "C3" },
+  const bedsOptions = [
+    { value: "1", label: "1" },
+    { value: "2", label: "2" },
+    { value: "3", label: "3" },
+    { value: "4", label: "4" },
+    { value: "5", label: "5" },
+    { value: "6+", label: "6" },
+    { value: "7", label: "7" },
+    { value: "48+", label: "8" },
+  ];
+
+  const bathsOptions = [
+    { value: "1", label: "1" },
+    { value: "2", label: "2" },
+    { value: "3", label: "3" },
+    { value: "4", label: "4" },
+    { value: "5", label: "5" },
+    { value: "6+", label: "6" },
+    { value: "7", label: "7" },
+    { value: "48+", label: "8" },
   ];
 
   const handleChange = (name, value) => {
@@ -97,14 +111,14 @@ const PropertySearchFilter = ({ onFilter }) => {
   const clearFilters = () => {
     setFilters({
       purpose: "",
-      paths: "",
       category: "",
+      city: "",
+      beds: "",
+      baths: "",
       areaMin: "",
       areaMax: "",
-      search: "",
       priceMin: "",
       priceMax: "",
-      code: "",
       location: "",
       keyword: "",
     });
@@ -140,7 +154,7 @@ const PropertySearchFilter = ({ onFilter }) => {
     <div className="w-full max-w-full mx-auto px-4 py-6 bg-white rounded-lg shadow-md border border-gray-200">
       <div className="mb-4 flex flex-col gap-y-4">
         <h2 className="text-xl font-semibold text-gray-800">Keyword Search</h2>
-        <div className="w-full h-fit  flex justify-between ">
+        <div className="w-full h-fit flex justify-between">
           <div className="w-fit h-fit flex gap-x-3 items-center">
             <div className="w-fit h-fit flex gap-x-3 rounded-lg border border-black px-4 py-2">
               <CiSearch className="text-2xl text-gray-500" />
@@ -152,7 +166,10 @@ const PropertySearchFilter = ({ onFilter }) => {
                 className="w-[700px] h-fit outline-none"
               />
             </div>
-            <button className="px-8 py-2.5 bg-[#3B404C] hover:bg-gray-500 transition-all duration-300 text-white rounded-lg cursor-pointer">
+            <button 
+              onClick={handleSubmit}
+              className="px-8 py-2.5 bg-[#3B404C] hover:bg-gray-500 transition-all duration-300 text-white rounded-lg cursor-pointer"
+            >
               Search
             </button>
           </div>
@@ -169,7 +186,7 @@ const PropertySearchFilter = ({ onFilter }) => {
       </div>
 
       <form onSubmit={handleSubmit} className="space-y-6">
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
           {/* Purpose */}
           <div className="space-y-2">
             <h3 className="text-sm font-medium text-gray-700">Purpose</h3>
@@ -186,25 +203,6 @@ const PropertySearchFilter = ({ onFilter }) => {
               placeholder="Select"
             />
           </div>
-
-          {/* Paths */}
-          {/* <div className="space-y-2">
-            <h3 className="text-sm font-medium text-gray-700">Paths</h3>
-            <Select
-              options={pathsOptions}
-              value={
-                pathsOptions.find((opt) => opt.value === filters.paths) || null
-              }
-              onChange={(selected) =>
-                handleChange("paths", selected?.value || "")
-              }
-              styles={customStyles}
-              placeholder="Select"
-            />
-          </div> */}
-
-          {/* Divider */}
-          <div className="hidden lg:block border-l border-gray-200"></div>
 
           {/* Category */}
           <div className="space-y-2">
@@ -223,6 +221,54 @@ const PropertySearchFilter = ({ onFilter }) => {
             />
           </div>
 
+          {/* City */}
+          <div className="space-y-2">
+            <h3 className="text-sm font-medium text-gray-700">City</h3>
+            <Select
+              options={cityOptions}
+              value={
+                cityOptions.find((opt) => opt.value === filters.city) || null
+              }
+              onChange={(selected) =>
+                handleChange("city", selected?.value || "")
+              }
+              styles={customStyles}
+              placeholder="Select"
+            />
+          </div>
+
+          {/* Beds */}
+          <div className="space-y-2">
+            <h3 className="text-sm font-medium text-gray-700">Beds</h3>
+            <Select
+              options={bedsOptions}
+              value={
+                bedsOptions.find((opt) => opt.value === filters.beds) || null
+              }
+              onChange={(selected) =>
+                handleChange("beds", selected?.value || "")
+              }
+              styles={customStyles}
+              placeholder="Select"
+            />
+          </div>
+
+          {/* Baths */}
+          <div className="space-y-2">
+            <h3 className="text-sm font-medium text-gray-700">Baths</h3>
+            <Select
+              options={bathsOptions}
+              value={
+                bathsOptions.find((opt) => opt.value === filters.baths) || null
+              }
+              onChange={(selected) =>
+                handleChange("baths", selected?.value || "")
+              }
+              styles={customStyles}
+              placeholder="Select"
+            />
+          </div>
+
           {/* Area */}
           <div className="space-y-2">
             <h3 className="text-sm font-medium text-gray-700">Area</h3>
@@ -231,42 +277,22 @@ const PropertySearchFilter = ({ onFilter }) => {
                 type="text"
                 value={filters.areaMin}
                 onChange={(e) => handleChange("areaMin", e.target.value)}
-                placeholder="Min Area (Math)"
+                placeholder="Min Area (Maria)"
                 className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
               />
               <input
                 type="text"
                 value={filters.areaMax}
                 onChange={(e) => handleChange("areaMax", e.target.value)}
-                placeholder="Max Area (Math)"
+                placeholder="Max Area (Maria)"
                 className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
               />
             </div>
           </div>
 
-          {/* Divider */}
-          <div className="hidden lg:block border-l border-gray-200"></div>
-
-          {/* Search */}
-          <div className="space-y-2">
-            <h3 className="text-sm font-medium text-gray-700">Search</h3>
-            <Select
-              options={searchOptions}
-              value={
-                searchOptions.find((opt) => opt.value === filters.search) ||
-                null
-              }
-              onChange={(selected) =>
-                handleChange("search", selected?.value || "")
-              }
-              styles={customStyles}
-              placeholder="Select"
-            />
-          </div>
-
           {/* Price */}
           <div className="space-y-2">
-            <h3 className="text-sm font-medium text-gray-700">Price</h3>
+            <h3 className="text-sm font-medium text-gray-700">Price (PKR)</h3>
             <div className="grid grid-cols-2 gap-2">
               <input
                 type="text"
@@ -279,26 +305,10 @@ const PropertySearchFilter = ({ onFilter }) => {
                 type="text"
                 value={filters.priceMax}
                 onChange={(e) => handleChange("priceMax", e.target.value)}
-                placeholder="Max Price (e.g. 50 lbs)"
+                placeholder="Max Price (e.g. 30 lbs)"
                 className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
               />
             </div>
-          </div>
-
-          {/* Code */}
-          <div className="space-y-2">
-            <h3 className="text-sm font-medium text-gray-700">Code</h3>
-            <Select
-              options={codeOptions}
-              value={
-                codeOptions.find((opt) => opt.value === filters.code) || null
-              }
-              onChange={(selected) =>
-                handleChange("code", selected?.value || "")
-              }
-              styles={customStyles}
-              placeholder="Select"
-            />
           </div>
 
           {/* Location */}
@@ -308,35 +318,13 @@ const PropertySearchFilter = ({ onFilter }) => {
               type="text"
               value={filters.location}
               onChange={(e) => handleChange("location", e.target.value)}
-              placeholder="Enter Location (e.g., Jxbar Town)"
+              placeholder="Enter Location (e.g. Julian Town)"
               className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
             />
           </div>
         </div>
 
-        <div className="flex justify-between items-center">
-          <button
-            type="button"
-            onClick={clearFilters}
-            className="text-sm text-gray-600 hover:text-gray-800"
-          >
-            Clear All Filters
-          </button>
-          <div className="space-x-4">
-            <button
-              type="button"
-              className="px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50"
-            >
-              Save Search As...
-            </button>
-            <button
-              type="submit"
-              className="px-6 py-2 bg-blue-600 text-white font-medium rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
-            >
-              Search
-            </button>
-          </div>
-        </div>
+  
       </form>
     </div>
   );
