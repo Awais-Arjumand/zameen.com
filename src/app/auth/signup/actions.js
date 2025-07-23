@@ -3,7 +3,7 @@
 import clientPromise from '../../../lib/mongodb';
 import { generateOTP, sendOTP } from '../../../lib/twilio';
 
-export async function registerUser(phone) {
+export async function registerUser(phone, firstName, lastName) {
   try {
     // Validate and format phone number
     const cleanPhone = phone.replace(/\D/g, '');
@@ -47,8 +47,10 @@ export async function registerUser(phone) {
       // In production, you might want to handle this differently
     }
     
-    // Save user data
+    // Save user data with name fields
     await db.collection('users').insertOne({
+      firstName,
+      lastName,
       phone: formattedPhone,
       verificationCode: otp,
       verified: false,

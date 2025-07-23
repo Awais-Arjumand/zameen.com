@@ -1,17 +1,13 @@
-import { Geist, Geist_Mono } from "next/font/google";
+import { Josefin_Sans } from "next/font/google";
 import "./globals.css";
 import ClientLayout from "./components/ClientLayout";
 import CustomSessionProvider from "./components/Providers/SessionProvider";
 
-const geistSans = Geist({
-  variable: "--font-geist-sans",
+const JosefinSans = Josefin_Sans({
+  variable: "--font-josefin-sans",
   subsets: ["latin"],
 });
 
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
-  subsets: ["latin"],
-});
 
 export const metadata = {
   title: "Create Next App",
@@ -22,7 +18,7 @@ export default function RootLayout({ children }) {
   return (
     <html lang="en">
       <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased`}
+        className={`${JosefinSans.variable} antialiased`}
         cz-shortcut-listen="true"
       >
         <CustomSessionProvider>

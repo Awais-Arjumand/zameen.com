@@ -1,8 +1,6 @@
 // app/admin/page.tsx
 "use server";
 
-import { auth, currentUser } from "@clerk/nextjs/server";
-import { redirect } from "next/navigation";
 import AdminRouteGuard from "./AdminRouteGuard";
 import AdminPageClient from "../components/admin/AdminPageClient";
 

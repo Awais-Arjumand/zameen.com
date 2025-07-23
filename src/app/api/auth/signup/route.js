@@ -3,7 +3,7 @@ import { generateOTP, sendOTP } from '../../../../lib/twilio';
 
 export async function POST(request) {
   try {
-    const { phone } = await request.json();
+    const { firstName, lastName, phone } = await request.json();
     
     // Connect to MongoDB
     const client = await clientPromise;
@@ -22,8 +22,10 @@ export async function POST(request) {
     const otp = generateOTP();
     await sendOTP(phone, otp);
     
-    // Create user with OTP (not verified yet)
+    // Create user with OTP (not verified yet) and name fields
     await db.collection('users').insertOne({
+      firstName,
+      lastName,
       phone,
       verificationCode: otp,
       verified: false,

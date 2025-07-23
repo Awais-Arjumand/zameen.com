@@ -270,7 +270,7 @@ export default function PropertyDetail({ params: paramsPromise }) {
         </div>
 
         {/* Similar Properties */}
-        <div className="mt-12">
+        {/* <div className="mt-12">
           <h3 className="text-xl font-semibold text-gray-900 mb-6">
             Similar Properties
           </h3>
@@ -322,7 +322,7 @@ export default function PropertyDetail({ params: paramsPromise }) {
               </div>
             ))}
           </div>
-        </div>
+        </div> */}
       </div>
     </div>
   );

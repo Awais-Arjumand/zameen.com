@@ -470,7 +470,6 @@ export default function PropertyTable({
                   onChange={handleInputChange}
                   className="w-full px-3 py-2 border border-gray-300 rounded-md"
                 >
-                  <option value="PKR">PKR</option>
                   <option value="LAKH">LAKH</option>
                   <option value="CRORE">CRORE</option>
                 </select>
@@ -637,11 +636,8 @@ export default function PropertyTable({
                 disabled={loading}
                 className="px-4 py-2 cursor-pointer transition-all duration-300 bg-blue-600 hover:bg-blue-700 text-white rounded flex items-center justify-center min-w-[120px]"
               >
-                {loading ? (
-                  <ClipLoader size={20} color="#ffffff" />
-                ) : (
+            
                   "Save Changes"
-                )}
               </button>
             </div>
           </div>

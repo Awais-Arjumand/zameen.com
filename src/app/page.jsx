@@ -217,7 +217,7 @@ export default function Home() {
   }
 
   return (
-    <div className="w-full h-fit border border-black pt-5 pb-10 px-5 flex flex-col gap-y-8">
+    <div className="w-full h-fit  pt-5 pb-10 px-5 flex flex-col gap-y-8">
      
       <PropertySearchFilter onFilter={handleFilter} />
       <HomeDetails
