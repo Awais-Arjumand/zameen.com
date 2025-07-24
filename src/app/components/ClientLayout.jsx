@@ -10,11 +10,8 @@ import Loader from "./Loader/Loader";
 
 export default function ClientLayout({ children }) {
   const pathname = usePathname();
-  const isAdmin = pathname.startsWith("/admin");
   const isUserRole = pathname.startsWith("/user-role");
-  const hideNavFooter =
-    pathname.startsWith("/dealer-panel-login") ||
-    pathname.startsWith("/dealer-panel");
+
   const isSignIn = pathname.startsWith("/auth/signin");
   const isSignUp = pathname.startsWith("/auth/signup");
   const isVerify = pathname.startsWith("/auth/verify");
@@ -36,11 +33,11 @@ export default function ClientLayout({ children }) {
   return (
     <>
       {loading && <Loader />}
-      {!isAdmin && !isUserRole && !isVerify && !isSignIn && !isSignUp && !hideNavFooter && (
+      {!isUserRole && !isVerify && !isSignIn && !isSignUp  && (
         <NavBar />
       )}
       {children}
-      {!isAdmin && !isUserRole && !isVerify && !isSignIn && !isSignUp && !hideNavFooter && (
+      {!isUserRole && !isVerify && !isSignIn && !isSignUp  && (
         <Footer />
       )}
       <ToastContainer

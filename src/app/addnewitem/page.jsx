@@ -8,10 +8,10 @@ import FeatureandAmenities from "../components/AddNewItem/FeatureandAmenities/Fe
 import AdInformation from "../components/AddNewItem/AdInformation/AdInformation";
 import PropertyImagesandVideos from "../components/AddNewItem/PropertyImagesandVideos/PropertyImagesandVideos";
 import ContactInformation from "../components/AddNewItem/ContactInformation/ContactInformation";
-import { useUser } from "@clerk/nextjs";
+import Link from "next/link";
+import { IoChevronBackSharp } from "react-icons/io5";
 
 const Page = () => {
-  const { user } = useUser();
   const router = useRouter();
   const locationAndCityRef = useRef(null);
   const areaAndPriceRef = useRef(null);
@@ -102,6 +102,11 @@ const Page = () => {
 
   return (
     <div className="w-full h-fit flex flex-col gap-y-8 px-32 py-10 bg-[#f6f7fb] border border-black">
+      <Link href={"/dealer-panel"} className="flex items-center gap-x-2">
+      <IoChevronBackSharp />
+
+      Back to Dealer Panel
+      </Link>
       <LocationAndCity ref={locationAndCityRef} />
       <AreaAndPrice ref={areaAndPriceRef} />
       <FeatureandAmenities ref={featureAndAmenitiesRef} />

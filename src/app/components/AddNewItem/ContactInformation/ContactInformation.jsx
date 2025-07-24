@@ -5,7 +5,6 @@ import axios from "axios";
 import { IoCallOutline, IoMailOutline } from "react-icons/io5";
 import { IoMdAdd } from "react-icons/io";
 import { FaMinus } from "react-icons/fa6";
-import { useUser } from "@clerk/nextjs";
 
 // Get flag emoji from country code
 const getFlagEmoji = (countryCode) =>
@@ -16,7 +15,6 @@ const getFlagEmoji = (countryCode) =>
     );
 
 const ContactInformation = forwardRef((props, ref) => {
-  const { user } = useUser();
   const [countries, setCountries] = useState([]);
   const [mobileCountry, setMobileCountry] = useState(null);
   const [landlineCountry, setLandlineCountry] = useState(null);
@@ -29,9 +27,7 @@ const ContactInformation = forwardRef((props, ref) => {
 
   // Load countries and default email on mount
   useEffect(() => {
-    if (user?.primaryEmailAddress?.emailAddress) {
-      setEmail(user.primaryEmailAddress.emailAddress.toLowerCase());
-    }
+
 
     axios
       .get("https://restcountries.com/v3.1/all?fields=cca2,name,idd")
@@ -56,7 +52,7 @@ const ContactInformation = forwardRef((props, ref) => {
         setLandlineCountry(pk || list[0]);
       })
       .catch(console.error);
-  }, [user]);
+  }, []);
 
   const handleAddMobile = () => {
     if (mobileNumbers.length < 3) {

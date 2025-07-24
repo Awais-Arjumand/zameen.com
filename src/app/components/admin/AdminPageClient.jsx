@@ -1,16 +1,28 @@
-
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useId } from "react";
 import PropertyTable from "./PropertyTable";
-import AdminHeader from "./AdminHeader";
 import { useRouter } from "next/navigation";
+import Select from "react-select";
 
 export default function AdminPageClient({ apiData = [] }) {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isRefreshing, setIsRefreshing] = useState(false);
-  const router = useRouter();
+  const [filters, setFilters] = useState({
+    location: "",
+    city: null,
+    category: null,
+    purpose: null,
+    dealer: "",
+    sortBy: null,
+  });
 
+  const citySelectId = useId();
+  const categorySelectId = useId();
+  const purposeSelectId = useId();
+  const sortSelectId = useId();
+
+  const router = useRouter();
 
   const categoryOptions = [
     { value: "House", label: "House" },
@@ -33,11 +45,9 @@ export default function AdminPageClient({ apiData = [] }) {
     { value: "Rent", label: "Rent" },
   ];
 
-  const areaUnitOptions = [
-    { value: "Marla", label: "Marla" },
-    { value: "Kanal", label: "Kanal" },
-    { value: "Square Feet", label: "Square Feet" },
-    { value: "Square Yards", label: "Square Yards" },
+  const sortOptions = [
+    { value: "priceAsc", label: "Price: Low to High" },
+    { value: "priceDesc", label: "Price: High to Low" },
   ];
 
   useEffect(() => {
@@ -57,40 +67,108 @@ export default function AdminPageClient({ apiData = [] }) {
     setTimeout(() => setIsRefreshing(false), 1000);
   };
 
+  const handleInputChange = (e) => {
+    const { name, value } = e.target;
+    setFilters((prev) => ({
+      ...prev,
+      [name]: value,
+    }));
+  };
+
+  const handleSelectChange = (name, selected) => {
+    setFilters((prev) => ({
+      ...prev,
+      [name]: selected,
+    }));
+  };
+
+  const clearFilters = () => {
+    setFilters({
+      location: "",
+      city: null,
+      category: null,
+      purpose: null,
+      dealer: "",
+      sortBy: null,
+    });
+  };
+
   return (
-    <div className="p-10 w-full min-h-screen bg-white text-gray-800 overflow-auto">
-      <AdminHeader />
+    <div className="p-4 sm:p-6 md:p-8 lg:p-10 w-full min-h-screen roboto bg-[#fafafa] text-gray-800 overflow-auto">
+      <div className="w-full flex justify-center items-center mb-4 sm:mb-6">
+        <h1 className="text-xl sm:text-2xl">Welcome to Admin Panel 👋✨</h1>
+      </div>
 
-      <div className="w-full flex justify-between items-center">
-       <div></div>
+      {/* Filters Section */}
+      <div className="bg-white rounded p-3 sm:p-4 mb-4 sm:mb-6">
+        <div className="w-full h-fit flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 mb-2">
+          <h3 className="text-base sm:text-lg font-semibold">
+            Filters & Sorting
+          </h3>
+          <button
+            onClick={clearFilters}
+            className="px-4 py-2 text-xs sm:text-sm font-normal text-white cursor-pointer bg-[#3B404C] hover:bg-gray-500 rounded-lg transition-all duration-300 w-full sm:w-auto text-center"
+          >
+            Clear All Filters
+          </button>
+        </div>
         
-        <button
-          onClick={handleRefresh}
-          disabled={isRefreshing}
-          className={`px-4 py-2 rounded-md cursor-pointer transition-all duration-300 flex items-center gap-2 ${isRefreshing ? 'bg-gray-300' : 'bg-blue-500 hover:bg-blue-600'} text-white`}
-        >
-          
-          <svg className={`w-5 h-5 ${isRefreshing ? 'animate-spin' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-          </svg>
-          {isRefreshing ? 'Refreshing...' : 'Refresh'}
-        </button>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+          <input
+            name="location"
+            value={filters.location}
+            onChange={handleInputChange}
+            placeholder="Filter by location"
+            className="px-3 py-2 text-xs sm:text-sm border border-gray-300 rounded-md w-full"
+          />
+
+          <Select
+            instanceId={citySelectId}
+            options={cityOptions}
+            value={filters.city}
+            onChange={(selected) => handleSelectChange("city", selected)}
+            placeholder="Select City"
+            className="text-xs sm:text-sm"
+          />
+
+          <Select
+            instanceId={categorySelectId}
+            options={categoryOptions}
+            value={filters.category}
+            onChange={(selected) => handleSelectChange("category", selected)}
+            placeholder="Select Category"
+            className="text-xs sm:text-sm"
+          />
+
+          <Select
+            instanceId={purposeSelectId}
+            options={purposeOptions}
+            value={filters.purpose}
+            onChange={(selected) => handleSelectChange("purpose", selected)}
+            placeholder="Select Purpose"
+            className="text-xs sm:text-sm"
+          />
+
+          <input
+            name="dealer"
+            value={filters.dealer}
+            onChange={handleInputChange}
+            placeholder="Filter by dealer name"
+            className="px-3 py-2 text-xs sm:text-sm border border-gray-300 rounded-md w-full"
+          />
+
+          <Select
+            instanceId={sortSelectId}
+            options={sortOptions}
+            value={filters.sortBy}
+            onChange={(selected) => handleSelectChange("sortBy", selected)}
+            placeholder="Sort By"
+            className="text-xs sm:text-sm"
+          />
+        </div>
       </div>
 
-      <div className="w-full flex justify-between items-center mb-4">
-        <h2 className="text-xl font-semibold">Properties Listing</h2>
-        <span className="text-gray-500 text-sm">
-          Total Properties: {Array.isArray(apiData) ? apiData.length : 0}
-        </span>
-      </div>
-
-      <PropertyTable 
-        apiData={apiData} 
-        categoryOptions={categoryOptions}
-        cityOptions={cityOptions}
-        purposeOptions={purposeOptions}
-        areaUnitOptions={areaUnitOptions}
-      />
+      <PropertyTable apiData={apiData} filters={filters} />
     </div>
   );
 }

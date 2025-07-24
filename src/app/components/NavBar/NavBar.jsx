@@ -3,14 +3,18 @@ import { useState, useEffect } from "react";
 import Link from "next/link";
 import { signOut, useSession } from "next-auth/react";
 import Image from "next/image";
+import { usePathname } from "next/navigation";
 
 const NavBar = ({ isAdmin = false }) => {
   const { data: session } = useSession();
   const [isMobile, setIsMobile] = useState(false);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [userData, setUserData] = useState(null);
+  const pathname = usePathname();
 
   const isAuthenticated = !!session;
+  const isDealerPanel = pathname === "/dealer-panel";
+  const IsAdmin = pathname === "/admin";
 
   useEffect(() => {
     const checkScreenSize = () => {
@@ -70,7 +74,7 @@ const NavBar = ({ isAdmin = false }) => {
         </Link>
 
         <div className="flex items-center gap-x-4">
-          {!isAdmin && (
+          {!IsAdmin && !isDealerPanel && (
             <Link
               className="flex rounded bg-[#3B404C] px-4 py-1.5 justify-center items-center w-fit h-fit text-xs font-normal text-white transition-all duration-300 hover:bg-gray-500"
               href={isAuthenticated ? "/dealer-panel" : "/auth/signin"}
@@ -127,14 +131,6 @@ const NavBar = ({ isAdmin = false }) => {
 
               {isDropdownOpen && (
                 <div className="absolute right-0 mt-2 w-48 origin-top-right rounded-md bg-white py-1 shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none z-50">
-                  {/* <div className="px-4 py-2 border-b">
-                    <p className="text-sm font-medium text-gray-700">
-                      {userData?.firstName} {userData?.lastName}
-                    </p>
-                    <p className="text-xs text-gray-500 truncate">
-                      {session?.user?.phone}
-                    </p>
-                  </div> */}
                   <button
                     onClick={handleLogout}
                     className="block w-full px-4 py-2 text-sm text-left text-gray-700 hover:bg-gray-100"
@@ -149,7 +145,7 @@ const NavBar = ({ isAdmin = false }) => {
       </div>
 
       {/* Mobile menu button */}
-      {isMobile && !isAdmin && (
+      {isMobile && !IsAdmin && !isDealerPanel && (
         <div className="flex justify-between items-center p-4 md:hidden">
           <Link
             className="rounded bg-[#3B404C] px-4 py-1.5 flex justify-center items-center w-fit h-fit text-xs font-normal text-white transition-all duration-300 hover:bg-gray-500"

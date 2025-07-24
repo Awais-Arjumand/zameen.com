@@ -95,7 +95,7 @@ const LocationAndCity = forwardRef((props, ref) => {
 
   return (
     <div className="w-full h-fit rounded-lg bg-white px-14 py-7">
-      <div className="w-full h-fit flex gap-x-14 ">
+      <div className="w-full h-fit flex gap-x-14 border border-black">
         <IconAndLabel
           icon={<CiLocationOn className="text-3xl text-gray-400" />}
           label={"Location and Purpose"}
