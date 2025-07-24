@@ -6,6 +6,7 @@ import SelectionIconOrLabel from "../LocationAndCity/SelectionIconOrLabel";
 import { GoImage } from "react-icons/go";
 import { IoMdImages } from "react-icons/io";
 import { MdOutlineVideoCall } from "react-icons/md";
+import { LuImage } from "react-icons/lu";
 
 const PropertyImagesandVideos = forwardRef((props, ref) => {
   const imageInputRef = useRef(null);
@@ -62,39 +63,36 @@ const PropertyImagesandVideos = forwardRef((props, ref) => {
   const isVideoDisabled = !!video;
 
   return (
-    <div className="w-full h-fit rounded-lg bg-white px-14 py-7">
-      <div className="w-full h-fit flex gap-x-14">
+    <div className="w-full h-fit roboto rounded-lg bg-white px-14 py-7">
+      <div className="w-full h-fit flex flex-col gap-y-5">
         <IconAndLabel
-          icon={<IoDocumentTextOutline className="text-3xl text-gray-400" />}
+          icon={<LuImage className="text-xl text-[#1CC323]" />}
           label={"Property Images and Videos"}
         />
         <div className="w-full h-fit flex flex-col">
           {/* IMAGES */}
           <div className="w-full h-fit flex flex-col gap-y-3 py-3">
-            <SelectionIconOrLabel
-              icon={<GoImage className="text-xl text-gray-700" />}
-              label={"Images"}
-            />
-            <div className="w-full h-fit flex flex-col border border-dashed rounded-lg px-6 py-3 border-green-700">
+            <label htmlFor="" className="text-xl font-semibold">Images</label>
+            <div className="w-full h-fit flex flex-col border border-dashed rounded-lg px-6 py-3 border-[#1CC323]">
               <div className="w-fit h-fit flex justify-center items-center mb-4">
                 <button
                   type="button"
                   onClick={handleImageClick}
                   disabled={isImageDisabled}
-                  className={`w-fit h-fit p-3 cursor-pointer transition-all duration-300 rounded-full flex gap-x-2 justify-center items-center ${
+                  className={`w-fit h-fit p-2 px-3 cursor-pointer transition-all duration-300 rounded-full flex gap-x-2 justify-center items-center ${
                     isImageDisabled
                       ? "bg-gray-300 cursor-not-allowed"
-                      : "bg-[#e7f3ef] hover:bg-gray-300"
+                      : "bg-[#ddf6de] hover:bg-gray-300"
                   }`}
                 >
                   <IoMdImages
                     className={`text-2xl ${
-                      isImageDisabled ? "text-gray-500" : "text-green-700"
+                      isImageDisabled ? "text-gray-500" : "text-[#1CC323]"
                     }`}
                   />
                   <span
                     className={`${
-                      isImageDisabled ? "text-gray-500" : "text-gray-700"
+                      isImageDisabled ? "text-gray-500" : "text-[#1CC323]"
                     }`}
                   >
                     {isImageDisabled ? "Max 5 Images" : "Upload Image"}
@@ -139,30 +137,28 @@ const PropertyImagesandVideos = forwardRef((props, ref) => {
 
           {/* VIDEO */}
           <div className="w-full h-fit flex flex-col gap-y-3 py-3">
-            <SelectionIconOrLabel
-              icon={<MdOutlineVideoCall className="text-xl text-gray-700" />}
-              label={"Add Videos of your Property"}
-            />
-            <div className="w-full h-fit flex flex-col border border-dashed rounded-lg px-6 py-3 border-green-700">
+          <label htmlFor="" className="text-xl font-semibold">Videos</label>
+
+            <div className="w-full h-fit flex flex-col border border-dashed rounded-lg px-6 py-3 border-[#1CC323]">
               <div className="w-fit h-fit flex justify-center items-center mb-4">
                 <button
                   type="button"
                   onClick={handleVideoClick}
                   disabled={isVideoDisabled}
-                  className={`w-fit h-fit p-3 cursor-pointer transition-all duration-300 rounded-full flex gap-x-2 justify-center items-center ${
+                  className={`w-fit h-fit p-2 px-3 cursor-pointer transition-all duration-300 rounded-full flex gap-x-2 justify-center items-center ${
                     isVideoDisabled
                       ? "bg-gray-300 cursor-not-allowed"
-                      : "bg-[#e7f3ef] hover:bg-gray-300"
+                      : "bg-[#ddf6de] hover:bg-gray-300"
                   }`}
                 >
                   <MdOutlineVideoCall
                     className={`text-2xl ${
-                      isVideoDisabled ? "text-gray-500" : "text-green-700"
+                      isVideoDisabled ? "text-gray-500" : "text-[#1CC323]"
                     }`}
                   />
                   <span
                     className={`${
-                      isVideoDisabled ? "text-gray-500" : "text-gray-700"
+                      isVideoDisabled ? "text-gray-500" : "text-[#1CC323]"
                     }`}
                   >
                     {isVideoDisabled ? "1 Video Uploaded" : "Upload Video"}

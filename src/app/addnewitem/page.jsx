@@ -59,7 +59,9 @@ const Page = () => {
         buyOrRent: adInfoData.buyOrRent,
         description: adInfoData.description || "",
         propertyDealerEmail: contactData.email,
-        propertyDealerName: `${(user?.firstName || "") + " " + (user?.lastName || "")}`.trim(),
+        propertyDealerName: `${
+          (user?.firstName || "") + " " + (user?.lastName || "")
+        }`.trim(),
       };
 
       console.log("✅ Final Form Data:", formData);
@@ -101,11 +103,10 @@ const Page = () => {
   };
 
   return (
-    <div className="w-full h-fit flex flex-col gap-y-8 px-32 py-10 bg-[#f6f7fb] border border-black">
+    <div className="w-full h-fit flex flex-col roboto gap-y-8 px-20 py-10 bg-[#f6f7fb] ">
       <Link href={"/dealer-panel"} className="flex items-center gap-x-2">
-      <IoChevronBackSharp />
-
-      Back to Dealer Panel
+        <IoChevronBackSharp />
+        Back to Dealer Panel
       </Link>
       <LocationAndCity ref={locationAndCityRef} />
       <AreaAndPrice ref={areaAndPriceRef} />
@@ -117,7 +118,7 @@ const Page = () => {
         onClick={handleSubmit}
         disabled={isSubmitting}
         className={`px-4 py-2 text-lg font-semibold transition-all duration-300 text-white flex justify-center items-center rounded-lg cursor-pointer self-end ${
-          isSubmitting ? "bg-gray-500" : "bg-green-600 hover:bg-green-700"
+          isSubmitting ? "bg-gray-500" : "bg-[#1CC323] hover:bg-green-700"
         }`}
       >
         {isSubmitting ? "Submitting..." : "Submit"}

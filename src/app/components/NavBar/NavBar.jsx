@@ -1,5 +1,5 @@
 "use client";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react"; // ✅ useRef bhi import karein
 import Link from "next/link";
 import { signOut, useSession } from "next-auth/react";
 import Image from "next/image";
@@ -11,6 +11,7 @@ const NavBar = ({ isAdmin = false }) => {
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [userData, setUserData] = useState(null);
   const pathname = usePathname();
+  const dropdownRef = useRef(null); // ✅ Ref for dropdown
 
   const isAuthenticated = !!session;
   const isDealerPanel = pathname === "/dealer-panel";
@@ -23,13 +24,11 @@ const NavBar = ({ isAdmin = false }) => {
 
     checkScreenSize();
     window.addEventListener("resize", checkScreenSize);
-
     return () => window.removeEventListener("resize", checkScreenSize);
   }, []);
 
   useEffect(() => {
     if (isAuthenticated && session?.user?.phone) {
-      // Fetch user data when authenticated
       const fetchUserData = async () => {
         try {
           const response = await fetch("http://localhost:3000/api/users");
@@ -50,6 +49,23 @@ const NavBar = ({ isAdmin = false }) => {
       fetchUserData();
     }
   }, [isAuthenticated, session]);
+
+  // ✅ Add event listener for click outside
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (
+        dropdownRef.current &&
+        !dropdownRef.current.contains(event.target)
+      ) {
+        setIsDropdownOpen(false);
+      }
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, []);
 
   const toggleDropdown = () => {
     setIsDropdownOpen(!isDropdownOpen);
@@ -91,7 +107,7 @@ const NavBar = ({ isAdmin = false }) => {
               Login
             </Link>
           ) : (
-            <div className="relative">
+            <div className="relative" ref={dropdownRef}>
               <button
                 onClick={toggleDropdown}
                 className="flex items-center gap-2 focus:outline-none"
@@ -144,7 +160,6 @@ const NavBar = ({ isAdmin = false }) => {
         </div>
       </div>
 
-      {/* Mobile menu button */}
       {isMobile && !IsAdmin && !isDealerPanel && (
         <div className="flex justify-between items-center p-4 md:hidden">
           <Link

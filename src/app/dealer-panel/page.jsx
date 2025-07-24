@@ -12,7 +12,6 @@ export default function DealerPanel() {
   const { data: session, status } = useSession();
   const [properties, setProperties] = useState([]);
   const [filteredProperties, setFilteredProperties] = useState([]);
-  const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [userName, setUserName] = useState({ firstName: "", lastName: "" });
   const [filters, setFilters] = useState({
@@ -66,7 +65,6 @@ export default function DealerPanel() {
 
   const fetchDealerProperties = async () => {
     try {
-      setLoading(true);
       const fullName = `${userName.firstName || ""} ${
         userName.lastName || ""
       }`.trim();
@@ -80,8 +78,6 @@ export default function DealerPanel() {
     } catch (err) {
       console.error("Error fetching dealer properties:", err);
       setError("Failed to load properties. Please try again later.");
-    } finally {
-      setLoading(false);
     }
   };
 
@@ -142,29 +138,18 @@ export default function DealerPanel() {
     setFilteredProperties(temp);
   };
 
-  if (status === "loading") {
-    return <div>Loading...</div>;
-  }
 
-  if (status !== "authenticated") {
-    return (
-      <div className="w-full h-screen flex items-center justify-center bg-gray-50">
-        <h1 className="text-xl md:text-3xl font-bold px-4 text-center">
-          Please sign in to access dealer panel
-        </h1>
-      </div>
-    );
-  }
+  // if (status !== "authenticated") {
+  //   return (
+  //     <div className="w-full h-screen flex items-center justify-center bg-gray-50">
+  //       <h1 className="text-xl md:text-3xl font-bold px-4 text-center">
+  //         Please sign in to access dealer panel
+  //       </h1>
+  //     </div>
+  //   );
+  // }
 
-  if (loading) {
-    return (
-      <div className="w-full h-screen flex items-center justify-center bg-gray-50">
-        <h1 className="text-xl md:text-3xl font-bold px-4 text-center">
-          Loading properties...
-        </h1>
-      </div>
-    );
-  }
+  
 
   if (error) {
     return (

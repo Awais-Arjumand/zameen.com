@@ -10,7 +10,7 @@ import { IoIosCall, IoIosArrowBack } from "react-icons/io";
 import { useRouter } from "next/navigation";
 import dynamic from "next/dynamic";
 import axios from "axios";
-import Loader from "../../components/Loader/Loader";
+import Loader from "../../auth/loading";
 
 // Gallery component for main image + thumbnails
 function ImageGallery({ images }) {

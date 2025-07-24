@@ -25,10 +25,7 @@ const ContactInformation = forwardRef((props, ref) => {
   ]);
   const [email, setEmail] = useState("");
 
-  // Load countries and default email on mount
   useEffect(() => {
-
-
     axios
       .get("https://restcountries.com/v3.1/all?fields=cca2,name,idd")
       .then((res) => {
@@ -110,99 +107,88 @@ const ContactInformation = forwardRef((props, ref) => {
   }));
 
   return (
-    <div className="w-full max-w-3xl mx-auto bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+    <div className="w-full bg-white rounded-xl roboto shadow-sm border border-gray-200 overflow-hidden">
       <div className="p-8">
         <div className="flex items-center gap-x-3 mb-8 pb-3 border-b border-gray-200">
-          <div className="p-2 bg-gray-100 rounded-lg">
-            <IoCallOutline className="text-2xl text-gray-500" />
+          <div className="p-2 bg-[#ddf6de] rounded-lg">
+            <IoCallOutline className="text-xl text-[#1CC323]" />
           </div>
-          <h2 className="text-xl font-bold text-gray-800">Contact Information</h2>
+          <h2 className="text-2xl font-semibold text-gray-800">Contact Information</h2>
         </div>
 
         {/* Email */}
-        <div className="flex items-center mb-6">
-          <div className="w-40 flex items-center gap-x-3">
-            <div className="p-2 bg-gray-100 rounded-lg">
+        <div className="flex items-center mb-6 ">
+          <div className="w-40 flex items-center gap-x-2">
+            <div className="p-2 rounded-lg">
               <IoMailOutline className="text-xl text-gray-500" />
             </div>
-            <span className="text-gray-600 font-medium">Email</span>
+            <span className="text-gray-600 font-semibold">Email</span>
           </div>
           <div className="flex-1">
             <input
               type="email"
               value={email}
               onChange={handleEmailChange}
-              className="w-full border border-gray-300 rounded px-3 py-2 outline-none focus:ring-2 focus:ring-blue-500"
+              placeholder="Your Email"
+              className="w-full border border-gray-300 rounded px-3 py-3 outline-none focus:ring-2 focus:ring-blue-500"
             />
           </div>
         </div>
 
-        {/* Mobile Numbers */}
-        <div className="mb-6">
-          <div className="flex items-center mb-2">
-            <div className="w-40 flex items-center gap-x-3">
-              <div className="p-2 bg-gray-100 rounded-lg">
-                <IoCallOutline className="text-xl text-gray-500" />
-              </div>
+        <div className="w-full h-fit grid grid-cols-2 gap-x-3">
+          {/* Mobile Numbers */}
+          <div className="mb-6">
+            <div className="flex items-center gap-x-3 mb-2">
+              <IoCallOutline className="text-xl text-gray-500" />
               <span className="text-gray-600 font-medium">Mobile</span>
             </div>
-            <div className="flex-1 text-gray-500 text-sm">
-              {mobileNumbers.length > 1 ? `(${mobileNumbers.length} added)` : ""}
-            </div>
+
+            {mobileNumbers.map((mobile, index) => (
+              <div key={mobile.id} className="flex items-start mb-3">
+                <div className="flex-1 flex gap-x-3">
+                  <div className="relative flex-1">
+                    <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none text-gray-500">
+                      {mobileCountry?.dialCode}
+                    </div>
+                    <input
+                      type="tel"
+                      className={`w-full pl-16 pr-3 py-3 outline-none border ${mobile.error ? "border-red-500" : "border-gray-300"} rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500`}
+                      placeholder="Phone number"
+                      value={mobile.value}
+                      onChange={(e) => handleMobileChange(mobile.id, e.target.value)}
+                    />
+                  </div>
+                  {index === 0 ? (
+                    <button
+                      type="button"
+                      className="flex-shrink-0 w-12 h-12 cursor-pointer flex items-center justify-center bg-[#3B404C] text-white rounded-lg hover:bg-gray-500 transition"
+                      onClick={handleAddMobile}
+                    >
+                      <IoMdAdd size={20} />
+                    </button>
+                  ) : (
+                    <button
+                      type="button"
+                      className="flex-shrink-0 w-12 h-12 cursor-pointer flex items-center justify-center bg-red-100 border border-red-300 text-red-500 rounded-lg hover:bg-red-200 transition"
+                      onClick={() => handleRemoveMobile(mobile.id)}
+                    >
+                      <FaMinus size={16} />
+                    </button>
+                  )}
+                </div>
+              </div>
+            ))}
           </div>
 
-          {mobileNumbers.map((mobile, index) => (
-            <div key={mobile.id} className="flex items-start mb-3">
-              <div className="w-40"></div>
-              <div className="flex-1 flex gap-x-3">
-                <div className="relative flex-1">
-                  <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none text-gray-500">
-                    {mobileCountry?.dialCode}
-                  </div>
-                  <input
-                    type="tel"
-                    className={`w-full pl-16 pr-3 py-3 outline-none border ${mobile.error ? "border-red-500" : "border-gray-300"} rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500`}
-                    placeholder="Phone number"
-                    value={mobile.value}
-                    onChange={(e) => handleMobileChange(mobile.id, e.target.value)}
-                  />
-                </div>
-                {index === 0 ? (
-                  <button
-                    type="button"
-                    className="flex-shrink-0 w-12 h-12 cursor-pointer flex items-center justify-center bg-green-500 text-white rounded-lg hover:bg-green-600 transition"
-                    onClick={handleAddMobile}
-                  >
-                    <IoMdAdd size={20} />
-                  </button>
-                ) : (
-                  <button
-                    type="button"
-                    className="flex-shrink-0 w-12 h-12 cursor-pointer flex items-center justify-center bg-red-100 border border-red-300 text-red-500 rounded-lg hover:bg-red-200 transition"
-                    onClick={() => handleRemoveMobile(mobile.id)}
-                  >
-                    <FaMinus size={16} />
-                  </button>
-                )}
-              </div>
-            </div>
-          ))}
-        </div>
-
-        {/* Landline */}
-        <div className="mb-2">
-          <div className="flex items-center mb-2">
-            <div className="w-40 flex items-center gap-x-3">
-              <div className="p-2 bg-gray-100 rounded-lg">
+          {/* Landline */}
+          <div className="mb-2">
+            <div className="flex items-center gap-x-3 mb-2">
                 <IoCallOutline className="text-xl text-gray-500" />
-              </div>
+             
               <span className="text-gray-600 font-medium">Landline</span>
             </div>
-          </div>
 
-          <div className="flex items-start">
-            <div className="w-40"></div>
-            <div className="flex-1 flex gap-x-3">
+            <div className="flex items-start">
               <div className="relative flex-1">
                 <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none text-gray-500">
                   {landlineCountry?.dialCode}
@@ -215,13 +201,12 @@ const ContactInformation = forwardRef((props, ref) => {
                   onChange={(e) => handleLandlineChange(e.target.value)}
                 />
               </div>
-              <div className="w-12"></div>
             </div>
           </div>
         </div>
 
         {landlineError && landlineNumber && (
-          <div className="mt-1 ml-40 text-red-500 text-sm flex items-start">
+          <div className="mt-1 text-red-500 text-sm flex items-start">
             <svg className="w-4 h-4 mr-1 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
               <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
             </svg>

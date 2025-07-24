@@ -5,6 +5,7 @@ import { IoBed, IoHomeOutline } from "react-icons/io5";
 import { FaSink } from "react-icons/fa6";
 import SelectionIconOrLabel from "../LocationAndCity/SelectionIconOrLabel";
 import AddNewItemChipsBox from "../AddNewItemChipsBox";
+import { LuBedDouble } from "react-icons/lu";
 
 const BedroomsData = [
   { icon: "", label: "Studio" },
@@ -53,18 +54,22 @@ const FeatureandAmenities = forwardRef((props, ref) => {
   };
 
   return (
-    <div className="w-full h-fit rounded-lg bg-white px-14 py-7">
-      <div className="w-full h-fit flex gap-x-14">
+    <div className="w-full h-fit roboto rounded-lg bg-white px-14 py-7">
+      <div className="w-full h-fit flex flex-col gap-y-5">
         <IconAndLabel
-          icon={<IoHomeOutline className="text-3xl text-gray-400" />}
+          icon={<IoHomeOutline className="text-xl text-[#1CC323]" />}
           label={"Feature and Amenities"}
         />
-        <div className="w-fit h-fit flex flex-col">
-          <div className="w-full flex flex-col gap-y-3 py-3">
-            <SelectionIconOrLabel
-              icon={<IoBed className="text-xl text-gray-700" />}
-              label={"Bedrooms"}
-            />
+        <div className="w-fit h-fit flex flex-col gap-y-3">
+          <div className="w-full flex flex-col gap-y-4 py-3">
+          <div className="w-fit h-fit flex gap-x-3 items-center">
+              <LuBedDouble   className="text-2xl" />
+              <label htmlFor="" className="text-xl font-semibold">
+              Bedrooms
+              </label>
+            </div>
+            
+
             <div className="w-fit h-fit flex gap-x-3 flex-wrap">
               {BedroomsData.map((item, index) => (
                 <AddNewItemChipsBox
@@ -78,11 +83,14 @@ const FeatureandAmenities = forwardRef((props, ref) => {
             </div>
           </div>
 
-          <div className="w-full flex flex-col gap-y-3 py-3">
-            <SelectionIconOrLabel
-              icon={<FaSink className="text-xl text-gray-700" />}
-              label={"Bathrooms"}
-            />
+          <div className="w-full flex flex-col gap-y-4 py-3">
+            <div className="w-fit h-fit flex gap-x-3 items-center">
+              <FaSink   className="text-2xl" />
+              <label htmlFor="" className="text-xl font-semibold">
+                Bathrooms
+              </label>
+            </div>
+
             <div className="w-fit h-fit flex gap-x-3 flex-wrap">
               {BathroomsData.map((item, index) => (
                 <AddNewItemChipsBox

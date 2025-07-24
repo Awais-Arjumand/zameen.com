@@ -1,8 +1,8 @@
+"use client";
 import React, { forwardRef, useImperativeHandle, useState } from "react";
 import IconAndLabel from "../LocationAndCity/IconAndLabel";
 import { IoDocumentTextOutline } from "react-icons/io5";
-import SelectionIconOrLabel from "../LocationAndCity/SelectionIconOrLabel";
-import { MdDescription, MdTitle } from "react-icons/md";
+import Select from "react-select";
 
 const AdInformation = forwardRef((props, ref) => {
   const [title, setTitle] = useState("");
@@ -15,27 +15,63 @@ const AdInformation = forwardRef((props, ref) => {
       title,
       description,
       category,
-      buyOrRent
+      buyOrRent,
     }),
   }));
 
+  // react-select options
+  const categoryOptions = [
+    { value: "House", label: "House" },
+    { value: "Apartment", label: "Apartment" },
+    { value: "Villa", label: "Villa" },
+    { value: "Land", label: "Land" },
+  ];
+
+  const buyOrRentOptions = [
+    { value: "Buy", label: "Buy" },
+    { value: "Rent", label: "Rent" },
+  ];
+
+  // Custom styles for react-select
+  const customStyles = {
+    container: (provided) => ({
+      ...provided,
+      width: "100%",
+    }),
+    control: (provided) => ({
+      ...provided,
+      border: "1px solid #6b7280",
+      borderRadius: "0.375rem",
+      cursor: "pointer",
+      minHeight: "42px",
+      boxShadow: "none",
+    }),
+    menu: (provided) => ({
+      ...provided,
+      zIndex: 9999,
+    }),
+    option: (provided, state) => ({
+      ...provided,
+      backgroundColor: state.isSelected ? "#1CC323" : "white",
+      color: state.isSelected ? "white" : "black",
+    }),
+  };
+
   return (
-    <div className="w-full h-fit rounded-lg bg-white px-14 py-7">
-      <div className="w-full h-fit flex gap-x-14">
+    <div className="w-full h-fit roboto rounded-lg bg-white px-14 py-7">
+      <div className="w-full h-fit flex flex-col gap-y-5">
         <IconAndLabel
-          icon={<IoDocumentTextOutline className="text-3xl text-gray-400" />}
+          icon={<IoDocumentTextOutline className="text-xl text-[#1CC323]" />}
           label={"Ad Information"}
         />
+
         <div className="w-full h-fit flex flex-col gap-y-6">
           {/* Title Field */}
           <div className="w-full h-fit flex flex-col gap-y-3">
-            <SelectionIconOrLabel
-              icon={<MdTitle className="text-xl text-gray-700" />}
-              label={"Title"}
-            />
+            <label className="text-xl font-semibold">Title</label>
             <input
               type="text"
-              className="border border-gray-500 capitalize rounded px-3 py-2 w-full outline-1 outline-green-500 placeholder:text-sm text-sm"
+              className="border border-gray-500 capitalize rounded px-3 py-2 w-full outline-none placeholder:text-sm text-sm"
               placeholder="Type Title"
               value={title}
               onChange={(e) => setTitle(e.target.value)}
@@ -44,56 +80,56 @@ const AdInformation = forwardRef((props, ref) => {
 
           {/* Description Field */}
           <div className="w-full h-fit flex flex-col gap-y-3">
-            <SelectionIconOrLabel
-              icon={<MdDescription className="text-xl text-gray-700" />}
-              label={"Description"}
-            />
+            <label className="text-xl font-semibold">Description</label>
             <textarea
-              type="text"
-              className="border border-gray-500 w-full h-36 rounded capitalize px-3 py-2 outline-1 outline-green-500 placeholder:text-sm text-sm"
+              className="border border-gray-500 w-full h-36 rounded capitalize px-3 py-2 outline-none placeholder:text-sm text-sm"
               placeholder="Type Description"
               value={description}
               onChange={(e) => setDescription(e.target.value)}
             />
           </div>
-
+<div className="w-full h-fit grid grid-cols-2 gap-x-3">
+  
           {/* Category Field */}
           <div className="w-full h-fit flex flex-col gap-y-3">
-            <SelectionIconOrLabel
-              icon={<MdTitle className="text-xl text-gray-700" />}
-              label={"Category"}
+            <label className="text-xl font-semibold">Category</label>
+            <Select
+              options={categoryOptions}
+              value={categoryOptions.find((option) => option.value === category)}
+              onChange={(selectedOption) => setCategory(selectedOption.value)}
+              styles={customStyles}
+              placeholder="Select Category"
+              isSearchable={false}
+              className="text-sm"
+              instanceId="category-select"
+              menuPortalTarget={
+                typeof document !== "undefined" ? document.body : null
+              }
+              menuPosition="fixed"
             />
-            <select
-              className="border border-gray-500 rounded px-3 py-2 w-full outline-1 outline-green-500 text-sm"
-              value={category}
-              onChange={(e) => setCategory(e.target.value)}
-              required
-            >
-              <option value="">Select Category</option>
-              <option value="House">House</option>
-              <option value="Apartment">Apartment</option>
-              <option value="Villa">Villa</option>
-              <option value="Land">Land</option>
-            </select>
           </div>
 
           {/* Buy/Rent Field */}
           <div className="w-full h-fit flex flex-col gap-y-3">
-            <SelectionIconOrLabel
-              icon={<MdTitle className="text-xl text-gray-700" />}
-              label={"Buy or Rent"}
+            <label className="text-xl font-semibold">Buy or Rent</label>
+            <Select
+              options={buyOrRentOptions}
+              value={buyOrRentOptions.find(
+                (option) => option.value === buyOrRent
+              )}
+              onChange={(selectedOption) => setBuyOrRent(selectedOption.value)}
+              styles={customStyles}
+              placeholder="Select Option"
+              isSearchable={false}
+              className="text-sm"
+              instanceId="buy-rent-select"
+              menuPortalTarget={
+                typeof document !== "undefined" ? document.body : null
+              }
+              menuPosition="fixed"
             />
-            <select
-              className="border border-gray-500 rounded px-3 py-2 w-full outline-1 outline-green-500 text-sm"
-              value={buyOrRent}
-              onChange={(e) => setBuyOrRent(e.target.value)}
-              required
-            >
-              <option value="">Select Option</option>
-              <option value="Buy">Buy</option>
-              <option value="Rent">Rent</option>
-            </select>
           </div>
+</div>
         </div>
       </div>
     </div>

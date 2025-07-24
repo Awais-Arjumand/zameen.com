@@ -4,7 +4,11 @@ import IconAndLabel from "../LocationAndCity/IconAndLabel";
 import { IoPricetagOutline } from "react-icons/io5";
 import SelectionIconOrLabel from "../LocationAndCity/SelectionIconOrLabel";
 import { TbChartArea } from "react-icons/tb";
+import { RiCoinsLine } from "react-icons/ri";
+
 import Select from "react-select";
+import { FaRulerCombined } from "react-icons/fa6";
+import { CiDollar } from "react-icons/ci";
 
 const AreaAndPrice = forwardRef((props, ref) => {
   const [area, setArea] = useState("");
@@ -65,26 +69,30 @@ const AreaAndPrice = forwardRef((props, ref) => {
   };
 
   return (
-    <div className="w-full h-fit rounded-lg bg-white px-14 py-7">
-      <div className="w-full h-fit flex gap-x-14">
+    <div className="w-full h-fit rounded-lg roboto bg-white px-14 py-7">
+      <div className="w-full h-fit flex flex-col gap-y-5">
         <IconAndLabel
-          icon={<IoPricetagOutline className="text-3xl text-gray-400" />}
+          icon={<RiCoinsLine className="text-xl text-[#1CC323]" />}
           label={"Area and Price"}
         />
 
         <div className="w-full flex flex-col gap-y-3">
           {/* Area Section */}
           <div className="w-full flex flex-col gap-y-3 py-3">
-            <SelectionIconOrLabel
-              icon={<TbChartArea className="text-xl text-gray-700" />}
-              label={"Area Size"}
-            />
+          <div className="w-fit h-fit flex gap-x-3 items-center">
+
+          <FaRulerCombined className="text-2xl"/>
+            <label htmlFor="" className="text-xl font-semibold">
+              Area Size
+            </label>
+          </div>
+
             <div className="w-full flex gap-x-2">
               <input
                 type="text"
                 value={area}
                 onChange={(e) => setArea(e.target.value)}
-                className="w-full border border-gray-500 capitalize rounded px-3 py-2 outline-1 outline-green-500 placeholder:text-sm text-sm"
+                className="w-full border border-gray-500 capitalize rounded px-3 py-2 outline-none placeholder:text-sm text-sm"
                 placeholder="Enter Area"
               />
               <div className="w-32">
@@ -111,39 +119,46 @@ const AreaAndPrice = forwardRef((props, ref) => {
 
           {/* Price Section */}
           <div className="w-full flex flex-col gap-y-3 py-3">
-            <SelectionIconOrLabel
-              icon={<IoPricetagOutline className="text-xl text-gray-700" />}
-              label={"Price Range"}
-            />
+            <div className="w-fit h-fit flex gap-x-3 items-center">
+            <CiDollar className="text-2xl"/>
+
+            <label htmlFor="" className="text-xl font-semibold">
+              Price Range
+            </label>
+            </div>
+
             <div className="w-full flex flex-col gap-y-2">
-              {/* Min Price */}
-              <div className="w-full flex gap-x-2 items-center">
-                <div className="w-24 text-sm font-medium">Min Price:</div>
-                <input
-                  type="text"
-                  value={minPrice}
-                  onChange={(e) => setMinPrice(e.target.value)}
-                  className="w-full border border-gray-500 capitalize rounded px-3 py-2 outline-1 outline-green-500 placeholder:text-sm text-sm"
-                  placeholder="Enter Minimum Price"
-                />
+              {/* Price Inputs Container */}
+              <div className="w-full grid grid-cols-2 gap-x-3">
+                {/* Min Price */}
+                <div className="w-full flex flex-col gap-y-3">
+                  <div className="w-full text-sm font-medium">Min Price:</div>
+                  <input
+                    type="text"
+                    value={minPrice}
+                    onChange={(e) => setMinPrice(e.target.value)}
+                    className="w-full border border-gray-500 capitalize rounded px-3 py-2.5 outline-none placeholder:text-sm text-sm"
+                    placeholder="Enter Minimum Price"
+                  />
+                </div>
+
+                {/* Max Price */}
+                <div className="w-full flex flex-col gap-y-3">
+                  <div className="w-full text-sm font-medium">Max Price:</div>
+                  <input
+                    type="text"
+                    value={maxPrice}
+                    onChange={(e) => setMaxPrice(e.target.value)}
+                    className="w-full border border-gray-500 capitalize rounded px-3 py-2.5 outline-none placeholder:text-sm text-sm"
+                    placeholder="Enter Maximum Price"
+                  />
+                </div>
               </div>
-              
-              {/* Max Price */}
-              <div className="w-full flex gap-x-2 items-center">
-                <div className="w-24 text-sm font-medium">Max Price:</div>
-                <input
-                  type="text"
-                  value={maxPrice}
-                  onChange={(e) => setMaxPrice(e.target.value)}
-                  className="w-full border border-gray-500 capitalize rounded px-3 py-2 outline-1 outline-green-500 placeholder:text-sm text-sm"
-                  placeholder="Enter Maximum Price"
-                />
-              </div>
-              
+
               {/* Price Unit */}
-              <div className="w-full flex gap-x-2 items-center mt-2">
+              <div className="w-full flex flex-col gap-y-3 ">
                 <div className="w-24 text-sm font-medium">Unit:</div>
-                <div className="w-40">
+                <div className="w-[49.5%]">
                   <Select
                     options={priceUnitOptions}
                     value={priceUnitOptions.find(
