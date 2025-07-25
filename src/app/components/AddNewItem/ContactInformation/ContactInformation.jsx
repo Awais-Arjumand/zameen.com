@@ -2,7 +2,7 @@
 
 import React, { forwardRef, useImperativeHandle, useEffect, useState } from "react";
 import axios from "axios";
-import { IoCallOutline, IoMailOutline } from "react-icons/io5";
+import { IoCallOutline, IoMailOutline, IoPersonOutline } from "react-icons/io5";
 import { IoMdAdd } from "react-icons/io";
 import { FaMinus } from "react-icons/fa6";
 
@@ -24,6 +24,8 @@ const ContactInformation = forwardRef((props, ref) => {
     { id: 1, value: "", error: false }
   ]);
   const [email, setEmail] = useState("");
+  const [name, setName] = useState(""); // New state for dealer name
+  const [nameError, setNameError] = useState(false); // Validation error for name
 
   useEffect(() => {
     axios
@@ -80,6 +82,13 @@ const ContactInformation = forwardRef((props, ref) => {
     setEmail(e.target.value.toLowerCase());
   };
 
+  const handleNameChange = (e) => {
+    const value = e.target.value;
+    setName(value);
+    // Validate name has at least 2 words
+    setNameError(value.trim().split(/\s+/).length < 2);
+  };
+
   const validatePhone = (number) => {
     return /^\d{7,}$/.test(number);
   };
@@ -87,12 +96,14 @@ const ContactInformation = forwardRef((props, ref) => {
   useImperativeHandle(ref, () => ({
     getData: () => ({
       email,
+      name,
       mobileNumbers,
       landlineNumber,
       landlineCountry: landlineCountry?.code,
     }),
     setData: (data) => {
       setEmail(data.email || "");
+      setName(data.name || "");
       setLandlineNumber(data.landlineNumber || "");
       setMobileNumbers(
         data.mobileNumbers && data.mobileNumbers.length > 0
@@ -114,6 +125,30 @@ const ContactInformation = forwardRef((props, ref) => {
             <IoCallOutline className="text-xl text-[#1CC323]" />
           </div>
           <h2 className="text-2xl font-semibold text-gray-800">Contact Information</h2>
+        </div>
+
+        {/* Dealer Full Name */}
+        <div className="flex items-center mb-6">
+          <div className="w-40 flex items-center gap-x-2">
+            <div className="p-2 rounded-lg">
+              <IoPersonOutline className="text-xl text-gray-500" />
+            </div>
+            <span className="text-gray-600 font-semibold">Full Name</span>
+          </div>
+          <div className="flex-1">
+            <input
+              type="text"
+              value={name}
+              onChange={handleNameChange}
+              placeholder="First and Last Name"
+              className={`w-full capitalize border ${nameError ? "border-red-500" : "border-gray-300"} rounded px-3 py-3 outline-none focus:ring-2 focus:ring-blue-500`}
+            />
+            {nameError && (
+              <p className="mt-1 text-red-500 text-sm">
+                Please enter your full name (first and last)
+              </p>
+            )}
+          </div>
         </div>
 
         {/* Email */}

@@ -48,6 +48,7 @@ const mapAPIData = (apiData) => {
       category: item.category,
       propertyDealerName: item.propertyDealerName,
       createdAt: item.createdAt,
+      phone:item.phone
     };
   });
 };

@@ -45,19 +45,24 @@ const HousesBoxes = ({ houseData }) => {
       </div>
 
       {pageCount > 1 && (
-        <div className="flex justify-center pb-6">
+        <div className="flex justify-end pb-6">
           <ReactPaginate
-            previousLabel={"← Previous"}
-            nextLabel={"Next →"}
+            previousLabel={"<"}
+            nextLabel={">"}
             breakLabel={"..."}
             pageCount={pageCount}
             marginPagesDisplayed={1}
             pageRangeDisplayed={3}
             onPageChange={handlePageClick}
             containerClassName={"pagination flex gap-2"}
-            pageClassName={"px-3 py-1 border rounded"}
-            activeClassName={"bg-blue-500 text-white"}
-            disabledClassName={"text-gray-400"}
+            pageClassName={"page-item"}
+            pageLinkClassName={"page-link"}
+            activeClassName={"active"}
+            disabledClassName={"disabled"}
+            previousClassName={"page-item"}
+            nextClassName={"page-item"}
+            previousLinkClassName={"page-link"}
+            nextLinkClassName={"page-link"}
           />
         </div>
       )}

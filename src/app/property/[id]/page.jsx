@@ -101,7 +101,8 @@ export default function PropertyDetail({ params: paramsPromise }) {
           BuyOrRent: item.buyOrRent,
           city: item.city,
           area: item.location,
-          title: item.title || "Orchard House",
+          phone:item.phone || "**********",
+          title: item.title || item.description,
           rating: 4.5,
         };
         setProperty(mapped);
@@ -237,17 +238,15 @@ export default function PropertyDetail({ params: paramsPromise }) {
             <div className="flex items-center gap-2 mb-2">
               <IoIosCall className="text-green-600" />
               <span className="text-gray-700 text-sm">
-                +92 {property.DealerPhone}
+                {property.DealerPhone}
               </span>
             </div>
-            <a
-              href={`https://wa.me/92${property.DealerPhone}`}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="block w-full mt-4 bg-green-500 hover:bg-green-600 text-white text-center py-2 rounded font-semibold text-sm transition"
+            <Link
+              href={`https://wa.me/${property.DealerPhone}`}
+              className="flex gap-x-2 justify-center w-full mt-4 bg-green-500 items-center hover:bg-green-600 text-white text-center py-2 rounded font-semibold text-sm transition"
             >
-              <FaWhatsapp className="inline mr-2" /> WhatsApp
-            </a>
+              <FaWhatsapp className="text-lg" /> WhatsApp
+            </Link>
           </div>
         </div>
         {/* Map Section */}

@@ -7,6 +7,7 @@ import { IoIosArrowRoundBack } from "react-icons/io";
 import { useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
 import { LuRefreshCw } from "react-icons/lu";
+import { motion, AnimatePresence } from "framer-motion";
 
 export default function DealerPanel() {
   const { data: session, status } = useSession();
@@ -22,6 +23,7 @@ export default function DealerPanel() {
     dealerName: "",
     sortBy: "",
   });
+  const [isRefreshing, setIsRefreshing] = useState(false);
   const router = useRouter();
 
   useEffect(() => {
@@ -59,7 +61,9 @@ export default function DealerPanel() {
 
   const refreshProperties = () => {
     if (status === "authenticated" && session?.user) {
+      setIsRefreshing(true);
       fetchDealerProperties();
+      setTimeout(() => setIsRefreshing(false), 1000);
     }
   };
 
@@ -138,33 +142,34 @@ export default function DealerPanel() {
     setFilteredProperties(temp);
   };
 
-
-  // if (status !== "authenticated") {
-  //   return (
-  //     <div className="w-full h-screen flex items-center justify-center bg-gray-50">
-  //       <h1 className="text-xl md:text-3xl font-bold px-4 text-center">
-  //         Please sign in to access dealer panel
-  //       </h1>
-  //     </div>
-  //   );
-  // }
-
-  
-
   if (error) {
     return (
-      <div className="w-full h-screen flex items-center justify-center bg-gray-50">
+      <motion.div 
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        className="w-full h-screen flex items-center justify-center bg-gray-50"
+      >
         <h1 className="text-xl md:text-3xl font-bold text-red-500 px-4 text-center">
           {error}
         </h1>
-      </div>
+      </motion.div>
     );
   }
 
   return (
-    <div className="w-full min-h-screen bg-gray-50 p-4 md:p-8 roboto">
+    <motion.div
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      transition={{ duration: 0.5 }}
+      className="w-full min-h-screen bg-gray-50 p-4 md:p-8 roboto"
+    >
       <div className="max-w-full mx-auto flex flex-col gap-y-4 md:gap-y-6">
-        <div className="w-full flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+        <motion.div 
+          initial={{ y: -20, opacity: 0 }}
+          animate={{ y: 0, opacity: 1 }}
+          transition={{ duration: 0.5 }}
+          className="w-full flex flex-col md:flex-row justify-between items-start md:items-center gap-4"
+        >
           <div className="w-full md:w-fit flex flex-col gap-y-2 md:gap-y-4">
             <Link
               className="cursor-pointer bg-transparent flex gap-x-3 items-center text-sm md:text-base"
@@ -183,105 +188,107 @@ export default function DealerPanel() {
             </div>
           </div>
           <div className="w-full md:w-fit flex flex-col sm:flex-row gap-3">
-            <button
+            <motion.button
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
               onClick={refreshProperties}
               className="px-4 py-2 border border-black items-center rounded-lg cursor-pointer hover:bg-gray-200 transition-all duration-300 flex gap-x-3 justify-center"
             >
-              <LuRefreshCw />
+              <motion.span
+                animate={{ rotate: isRefreshing ? 360 : 0 }}
+                transition={{ duration: 1, repeat: isRefreshing ? Infinity : 0 }}
+              >
+                <LuRefreshCw />
+              </motion.span>
               Refresh
-            </button>
+            </motion.button>
 
-            <Link
-              className="px-4 py-2.5 cursor-pointer transition-all duration-300 bg-green-600 hover:bg-green-700 text-white rounded-lg shadow flex justify-center items-center"
-              href="/addnewitem"
+            <motion.div
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
             >
-              + Add New Property
-            </Link>
+              <Link
+                className="px-4 py-2.5 cursor-pointer transition-all duration-300 bg-green-600 hover:bg-green-700 text-white rounded-lg shadow flex justify-center items-center"
+                href="/addnewitem"
+              >
+                + Add New Property
+              </Link>
+            </motion.div>
           </div>
-        </div>
+        </motion.div>
 
-        <div className="bg-white rounded-lg shadow p-4 flex flex-col gap-y-4">
+        <motion.div
+          initial={{ y: 20, opacity: 0 }}
+          animate={{ y: 0, opacity: 1 }}
+          transition={{ duration: 0.5, delay: 0.1 }}
+          className="bg-white rounded-lg shadow p-4 flex flex-col gap-y-4"
+        >
           <div className="w-full h-fit flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
             <h1 className="text-base md:text-lg font-bold roboto">
               Filters & Sorting
             </h1>
-            <button
+            <motion.button
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
               onClick={clearFilters}
               className="px-4 py-2 sm:px-5 sm:py-3 text-sm font-normal text-white cursor-pointer bg-[#3B404C] hover:bg-gray-500 rounded-lg transition-all duration-300 w-full sm:w-auto text-center"
             >
               Clear All Filters
-            </button>
+            </motion.button>
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 mb-4">
-            <input
-              type="text"
-              name="location"
-              placeholder="Location"
-              value={filters.location}
-              onChange={handleFilterChange}
-              className="w-full border border-gray-300 outline-none rounded px-3 py-2 text-sm md:text-base"
-            />
-
-            <input
-              type="text"
-              name="city"
-              placeholder="City"
-              value={filters.city}
-              onChange={handleFilterChange}
-              className="w-full border border-gray-300 outline-none rounded px-3 py-3 text-sm md:text-base"
-            />
-
-            <input
-              type="text"
-              name="category"
-              placeholder="Category"
-              value={filters.category}
-              onChange={handleFilterChange}
-              className="w-full border border-gray-300 outline-none rounded px-3 py-2 text-sm md:text-base"
-            />
-
-            <div className="w-full h-fit pr-2 border border-gray-300 rounded">
-              <select
-                name="purpose"
-                value={filters.purpose}
-                onChange={handleFilterChange}
-                className="w-full outline-none px-3 py-3 placeholder:text-gray-300 text-sm md:text-base"
+            {Object.entries(filters).map(([key, value]) => (
+              <motion.div
+                key={key}
+                whileHover={{ y: -2 }}
+                transition={{ duration: 0.2 }}
               >
-                <option value="">Purpose</option>
-                <option value="Buy">Buy</option>
-                <option value="Rent">Rent</option>
-              </select>
-            </div>
-
-            <input
-              type="text"
-              name="dealerName"
-              placeholder="Property Dealer Name"
-              value={filters.dealerName}
-              onChange={handleFilterChange}
-              className="w-full border border-gray-300 outline-none rounded px-3 py-2 text-sm md:text-base"
-            />
-
-            <div className="w-full h-fit pr-2 border border-gray-300 rounded">
-              <select
-                name="sortBy"
-                value={filters.sortBy}
-                onChange={handleFilterChange}
-                className="w-full rounded px-3 py-3 outline-none text-sm md:text-base"
-              >
-                <option value="">Sort By</option>
-                <option value="priceAsc">Price Low to High</option>
-                <option value="priceDesc">Price High to Low</option>
-              </select>
-            </div>
+                {key === "purpose" || key === "sortBy" ? (
+                  <div className="w-full h-fit pr-2 border border-gray-300 rounded">
+                    <select
+                      name={key}
+                      value={value}
+                      onChange={handleFilterChange}
+                      className="w-full outline-none px-3 py-3 placeholder:text-gray-300 text-sm md:text-base"
+                    >
+                      <option value="">{key === "purpose" ? "Purpose" : "Sort By"}</option>
+                      {key === "purpose" ? (
+                        <>
+                          <option value="Buy">Buy</option>
+                          <option value="Rent">Rent</option>
+                        </>
+                      ) : (
+                        <>
+                          <option value="priceAsc">Price Low to High</option>
+                          <option value="priceDesc">Price High to Low</option>
+                        </>
+                      )}
+                    </select>
+                  </div>
+                ) : (
+                  <input
+                    type="text"
+                    name={key}
+                    placeholder={
+                      key === "dealerName" 
+                        ? "Property Dealer Name" 
+                        : key.charAt(0).toUpperCase() + key.slice(1)
+                    }
+                    value={value}
+                    onChange={handleFilterChange}
+                    className="w-full border border-gray-300 outline-none rounded px-3 py-2 text-sm md:text-base"
+                  />
+                )}
+              </motion.div>
+            ))}
           </div>
-        </div>
+        </motion.div>
 
         <DealerPropertyTable
           properties={filteredProperties}
           onDelete={refreshProperties}
         />
       </div>
-    </div>
+    </motion.div>
   );
 }

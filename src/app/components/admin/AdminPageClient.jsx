@@ -4,6 +4,7 @@ import { useState, useEffect, useId } from "react";
 import PropertyTable from "./PropertyTable";
 import { useRouter } from "next/navigation";
 import Select from "react-select";
+import { motion } from "framer-motion";
 
 export default function AdminPageClient({ apiData = [] }) {
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -94,32 +95,52 @@ export default function AdminPageClient({ apiData = [] }) {
   };
 
   return (
-    <div className="p-4 sm:p-6 md:p-8 lg:p-10 w-full min-h-screen roboto bg-[#fafafa] text-gray-800 overflow-auto">
+    <motion.div
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.5 }}
+      className="p-4 sm:p-6 md:p-8 lg:p-10 w-full min-h-screen roboto bg-[#fafafa] text-gray-800 overflow-auto"
+    >
       <div className="w-full flex justify-center items-center mb-4 sm:mb-6">
-        <h1 className="text-xl sm:text-2xl">Welcome to Admin Panel 👋✨</h1>
+        <motion.h1 
+          initial={{ opacity: 0, y: -20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.1 }}
+          className="text-xl sm:text-2xl"
+        >
+          Welcome to Admin Panel 👋✨
+        </motion.h1>
       </div>
 
       {/* Filters Section */}
-      <div className="bg-white rounded p-3 sm:p-4 mb-4 sm:mb-6">
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.2 }}
+        className="bg-white rounded p-3 sm:p-4 mb-4 sm:mb-6 shadow-sm"
+      >
         <div className="w-full h-fit flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 mb-2">
           <h3 className="text-base sm:text-lg font-semibold">
             Filters & Sorting
           </h3>
-          <button
+          <motion.button
             onClick={clearFilters}
+            whileHover={{ scale: 1.02 }}
+            whileTap={{ scale: 0.98 }}
             className="px-4 py-2 text-xs sm:text-sm font-normal text-white cursor-pointer bg-[#3B404C] hover:bg-gray-500 rounded-lg transition-all duration-300 w-full sm:w-auto text-center"
           >
             Clear All Filters
-          </button>
+          </motion.button>
         </div>
         
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
-          <input
+          <motion.input
             name="location"
             value={filters.location}
             onChange={handleInputChange}
             placeholder="Filter by location"
             className="px-3 py-2 text-xs sm:text-sm border border-gray-300 rounded-md w-full"
+            whileFocus={{ borderColor: "#3B82F6", boxShadow: "0 0 0 1px #3B82F6" }}
           />
 
           <Select
@@ -149,12 +170,13 @@ export default function AdminPageClient({ apiData = [] }) {
             className="text-xs sm:text-sm"
           />
 
-          <input
+          <motion.input
             name="dealer"
             value={filters.dealer}
             onChange={handleInputChange}
             placeholder="Filter by dealer name"
             className="px-3 py-2 text-xs sm:text-sm border border-gray-300 rounded-md w-full"
+            whileFocus={{ borderColor: "#3B82F6", boxShadow: "0 0 0 1px #3B82F6" }}
           />
 
           <Select
@@ -166,9 +188,15 @@ export default function AdminPageClient({ apiData = [] }) {
             className="text-xs sm:text-sm"
           />
         </div>
-      </div>
+      </motion.div>
 
-      <PropertyTable apiData={apiData} filters={filters} />
-    </div>
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ delay: 0.3 }}
+      >
+        <PropertyTable apiData={apiData} filters={filters} />
+      </motion.div>
+    </motion.div>
   );
 }

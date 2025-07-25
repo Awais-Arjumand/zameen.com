@@ -4,6 +4,7 @@ import Link from "next/link";
 import { signOut, useSession } from "next-auth/react";
 import Image from "next/image";
 import { usePathname } from "next/navigation";
+import { TbLogout } from "react-icons/tb";
 
 const NavBar = ({ isAdmin = false }) => {
   const { data: session } = useSession();
@@ -77,7 +78,7 @@ const NavBar = ({ isAdmin = false }) => {
   };
 
   return (
-    <nav className="w-full bg-white shadow-md">
+    <nav className="w-full bg-white shadow-md fixed top-0 z-30">
       <div className="flex h-fit items-center justify-between gap-x-4 shadow-lg bg-[#f7f7f7] px-4 py-4 text-sm text-gray-700 md:flex lg:px-12">
         <Link href={"/"} className="text-2xl font-bold text-gray-500">
           <Image
@@ -146,11 +147,13 @@ const NavBar = ({ isAdmin = false }) => {
               </button>
 
               {isDropdownOpen && (
-                <div className="absolute right-0 mt-2 w-48 origin-top-right rounded-md bg-white py-1 shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none z-50">
+                <div className="absolute right-0 mt-2 w-48 origin-top-right rounded-lg bg-white py-1 shadow-lg focus:outline-none z-50">
                   <button
                     onClick={handleLogout}
-                    className="block w-full px-4 py-2 text-sm text-left text-gray-700 hover:bg-gray-100"
+                    className=" w-full flex gap-x-3 cursor-pointer items-center px-4 py-2 text-sm text-left text-gray-700 hover:bg-gray-100"
                   >
+                    <TbLogout className="text-xl" />
+
                     Logout
                   </button>
                 </div>

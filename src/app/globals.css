@@ -79,7 +79,6 @@
 .leaflet-bottom {
   z-index: 0 !important;
 }
-
 .pagination {
   display: flex;
   list-style: none;
@@ -87,12 +86,17 @@
 }
 
 .pagination li {
-  padding: 8px 12px;
-  border: 1px solid #ccc;
-  border-radius: 6px;
+  width: 36px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid #1CC323;
+  border-radius: 4px;
   cursor: pointer;
+  color: #1CC323;
   background: white;
-  transition: background 0.2s ease;
+  transition: all 0.2s ease;
 }
 
 .pagination li:hover {
@@ -100,8 +104,8 @@
 }
 
 .pagination li.active {
-  background-color: #1d4ed8 !important;
-  color: white !important;
+  background-color: #1CC323;
+  color: white;
   font-weight: bold;
 }
 

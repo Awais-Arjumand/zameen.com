@@ -42,6 +42,15 @@ const Page = () => {
       if (!areaPriceData.minPrice) errors.push("Minimum price is required");
       if (!areaPriceData.maxPrice) errors.push("Maximum price is required");
       if (errors.length > 0) throw new Error(errors.join("\n"));
+      if (!contactData.name) {
+        errors.push("Dealer full name is required");
+      } else {
+        const nameParts = contactData.name.trim().split(/\s+/);
+        if (nameParts.length < 2) {
+          errors.push("Dealer full name must include first and last name");
+        }
+      }
+      if (errors.length > 0) throw new Error(errors.join("\n"));
 
       // ✅ 3. Prepare main data
       const formData = {
@@ -50,8 +59,8 @@ const Page = () => {
         Area: areaPriceData.area,
         areaUnit: areaPriceData.areaUnit,
         TotalArea: areaPriceData.totalArea || areaPriceData.area,
-        minPrice: Number(areaPriceData.minPrice),
-        maxPrice: Number(areaPriceData.maxPrice),
+        minPrice: areaPriceData.minPrice,
+        maxPrice: areaPriceData.maxPrice,
         priceUnit: areaPriceData.priceUnit,
         beds: Number(featuresData.bedrooms) || 0,
         Bath: Number(featuresData.bathrooms) || 0,
@@ -59,9 +68,8 @@ const Page = () => {
         buyOrRent: adInfoData.buyOrRent,
         description: adInfoData.description || "",
         propertyDealerEmail: contactData.email,
-        propertyDealerName: `${
-          (user?.firstName || "") + " " + (user?.lastName || "")
-        }`.trim(),
+        Phone: contactData.phone,
+        propertyDealerName: contactData.name
       };
 
       console.log("✅ Final Form Data:", formData);
@@ -117,7 +125,7 @@ const Page = () => {
       <button
         onClick={handleSubmit}
         disabled={isSubmitting}
-        className={`px-4 py-2 text-lg font-semibold transition-all duration-300 text-white flex justify-center items-center rounded-lg cursor-pointer self-end ${
+        className={`px-5 py-2 text-base font-medium transition-all duration-300 text-white flex justify-center items-center rounded-lg cursor-pointer self-end ${
           isSubmitting ? "bg-gray-500" : "bg-[#1CC323] hover:bg-green-700"
         }`}
       >
