@@ -1,8 +1,7 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import PropertySearchFilter from "./components/PropertySearchFilter/PropertySearchFilter";
-import HomeDetails from "./components/HomeDetails/HomeDetails";
 import HousesBoxes from "./components/HousesBoxes/HousesBoxes";
 import Loader from "./components/Loader/Loader";
 import axios from "axios";
@@ -48,169 +47,173 @@ const mapAPIData = (apiData) => {
       category: item.category,
       propertyDealerName: item.propertyDealerName,
       createdAt: item.createdAt,
-      phone:item.phone
+      phone: item.phone
     };
+  });
+};
+
+const applyFilters = (data, filterValues) => {
+  return data.filter((property) => {
+    // Purpose filter
+    if (
+      filterValues.purpose &&
+      property.buyOrRent.toLowerCase() !== filterValues.purpose.toLowerCase()
+    ) {
+      return false;
+    }
+
+    // City filter
+    if (
+      filterValues.city &&
+      property.city.toLowerCase() !== filterValues.city.toLowerCase()
+    ) {
+      return false;
+    }
+
+    // Category filter
+    if (
+      filterValues.category &&
+      property.category?.toLowerCase() !== filterValues.category.toLowerCase()
+    ) {
+      return false;
+    }
+
+    // Location filter
+    if (
+      filterValues.location &&
+      !property.location
+        .toLowerCase()
+        .includes(filterValues.location.toLowerCase())
+    ) {
+      return false;
+    }
+
+    // Beds filter
+    if (filterValues.beds && filterValues.beds !== "All") {
+      const bedsValue = parseInt(filterValues.beds);
+      const propertyBeds = parseInt(property.beds);
+      
+      if (filterValues.beds.endsWith("+")) {
+        if (propertyBeds < bedsValue) return false;
+      } else if (propertyBeds !== bedsValue) {
+        return false;
+      }
+    }
+
+    // Baths filter
+    if (filterValues.baths && filterValues.baths !== "All") {
+      const bathsValue = parseInt(filterValues.baths);
+      const propertyBaths = parseInt(property.Bath);
+      
+      if (filterValues.baths.endsWith("+")) {
+        if (propertyBaths < bathsValue) return false;
+      } else if (propertyBaths !== bathsValue) {
+        return false;
+      }
+    }
+
+    // Area filter
+    if (filterValues.areaMin || filterValues.areaMax) {
+      const propertyArea = parseFloat(property.Area);
+      const isKanal = property.areaUnit === "Kanal";
+      const areaInMarla = isKanal ? propertyArea * 20 : propertyArea;
+
+      if (filterValues.areaMin) {
+        const minArea = parseFloat(filterValues.areaMin);
+        if (areaInMarla < minArea) return false;
+      }
+
+      if (filterValues.areaMax && filterValues.areaMax !== "Any") {
+        const maxArea = parseFloat(filterValues.areaMax);
+        if (areaInMarla > maxArea) return false;
+      }
+    }
+
+    // Price filter
+    if (filterValues.priceMin || filterValues.priceMax) {
+      const propertyPrice = parseFloat(property.price);
+
+      if (filterValues.priceMin) {
+        const minPrice = parseFloat(filterValues.priceMin);
+        if (propertyPrice < minPrice) return false;
+      }
+
+      if (filterValues.priceMax && filterValues.priceMax !== "Any") {
+        const maxPrice = parseFloat(filterValues.priceMax);
+        if (propertyPrice > maxPrice) return false;
+      }
+    }
+
+    // Keyword search
+    if (filterValues.keyword) {
+      const keyword = filterValues.keyword.toLowerCase();
+      if (
+        !property.description?.toLowerCase().includes(keyword) &&
+        !property.location?.toLowerCase().includes(keyword) &&
+        !property.city?.toLowerCase().includes(keyword)
+      ) {
+        return false;
+      }
+    }
+
+    return true;
   });
 };
 
 export default function Home() {
   const [houseData, setHouseData] = useState([]);
   const [filteredData, setFilteredData] = useState([]);
-  const [filters, setFilters] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
-  const [userPosted, setUserPosted] = useState(false);
   const searchParams = useSearchParams();
 
+  const fetchProperties = useCallback(async () => {
+    try {
+      setIsLoading(true);
+      const response = await axios.get(`${BACKEND_URL}/api/user`);
+      const apiData = response.data.data;
+      const mapped = mapAPIData(apiData);
+      setHouseData(mapped);
+      return mapped;
+    } catch (error) {
+      console.error("Error fetching properties:", error);
+      return [];
+    } finally {
+      setIsLoading(false);
+    }
+  }, []);
+
   useEffect(() => {
-    const fetchAPI = async () => {
-      try {
-        setIsLoading(true);
-        const response = await axios.get("http://localhost:3000/api/user");
-        const apiData = response.data.data;
-        const mapped = mapAPIData(apiData);
-        setHouseData(mapped);
+    const fetchDataAndApplyFilters = async () => {
+      const data = await fetchProperties();
+      
+      if (searchParams.toString()) {
+        const urlFilters = {
+          purpose: searchParams.get("purpose") || "",
+          category: searchParams.get("category") || "",
+          city: searchParams.get("city") || "",
+          location: searchParams.get("location") || "",
+          areaMin: searchParams.get("areaMin") || "",
+          areaMax: searchParams.get("areaMax") || "",
+          priceMin: searchParams.get("priceMin") || "",
+          priceMax: searchParams.get("priceMax") || "",
+          beds: searchParams.get("beds") || "",
+          baths: searchParams.get("baths") || "",
+          keyword: searchParams.get("keyword") || "",
+        };
 
-        if (searchParams.toString()) {
-          // Inside Home useEffect (fetchAPI)
-          const urlFilters = {
-            purpose: searchParams.get("purpose") || "",
-            category: searchParams.get("category") || "",
-            city: searchParams.get("city") || "",
-            location: searchParams.get("location") || "",
-            areaMin: searchParams.get("areaMin") || "0",
-            areaMax: searchParams.get("areaMax") || "Any",
-            priceMin: searchParams.get("priceMin") || "0",
-            priceMax: searchParams.get("priceMax") || "Any",
-            beds: searchParams.get("beds") || "All",
-            baths: searchParams.get("baths") || "All",
-            keyword: searchParams.get("keyword") || "",
-          };
-
-          handleFilter(urlFilters);
-        } else {
-          setFilteredData(mapped);
-        }
-      } catch (error) {
-        console.error("Error fetching properties:", error);
-      } finally {
-        setIsLoading(false);
+        const filtered = applyFilters(data, urlFilters);
+        setFilteredData(filtered);
+      } else {
+        setFilteredData(data);
       }
     };
 
-    fetchAPI();
-  }, [searchParams]);
-
+    fetchDataAndApplyFilters();
+  }, [fetchProperties, searchParams]);
 
   const handleFilter = (filterValues) => {
-    setFilters(filterValues);
-
-    const filtered = houseData.filter((property) => {
-      if (
-        filterValues.purpose &&
-        property.buyOrRent.toLowerCase() !== filterValues.purpose.toLowerCase()
-      ) {
-        return false;
-      }
-
-      if (
-        filterValues.city &&
-        property.city.toLowerCase() !== filterValues.city.toLowerCase()
-      ) {
-        return false;
-      }
-
-      if (
-        filterValues.category &&
-        property.category?.toLowerCase() !== filterValues.category.toLowerCase()
-      ) {
-        return false;
-      }
-
-      if (
-        filterValues.location &&
-        !property.location
-          .toLowerCase()
-          .includes(filterValues.location.toLowerCase())
-      ) {
-        return false;
-      }
-
-      if (filterValues.beds !== "All") {
-        if (filterValues.beds === "5+" && parseInt(property.beds) < 5) {
-          return false;
-        } else if (
-          filterValues.beds !== "5+" &&
-          property.beds !== filterValues.beds
-        ) {
-          return false;
-        }
-      }
-
-      if (filterValues.baths !== "All") {
-        if (filterValues.baths === "5+" && parseInt(property.Bath) < 5) {
-          return false;
-        } else if (
-          filterValues.baths !== "5+" &&
-          property.Bath !== filterValues.baths
-        ) {
-          return false;
-        }
-      }
-
-      if (filterValues.areaMin !== "0" || filterValues.areaMax !== "Any") {
-        const propertyArea = parseInt(property.Area);
-        const isKanal = property.TotalArea === "Kanal";
-        const areaInMarla = isKanal ? propertyArea * 20 : propertyArea;
-
-        if (filterValues.areaMin !== "0") {
-          const minArea = filterValues.areaMin.endsWith("k")
-            ? parseInt(filterValues.areaMin) * 20
-            : parseInt(filterValues.areaMin);
-          if (areaInMarla < minArea) return false;
-        }
-
-        if (filterValues.areaMax !== "Any") {
-          const maxArea = filterValues.areaMax.endsWith("k")
-            ? parseInt(filterValues.areaMax) * 20
-            : parseInt(filterValues.areaMax);
-          if (areaInMarla > maxArea) return false;
-        }
-      }
-
-      if (filterValues.priceMin !== "0" || filterValues.priceMax !== "Any") {
-        const propertyPrice = parseFloat(property.price);
-
-        if (filterValues.priceMin !== "0") {
-          const minPrice = parseFloat(filterValues.priceMin);
-          if (propertyPrice < minPrice) return false;
-        }
-
-        if (filterValues.priceMax !== "Any") {
-          const maxPrice = parseFloat(filterValues.priceMax);
-          if (propertyPrice > maxPrice) return false;
-        }
-      }
-
-      if (filterValues.keyword) {
-        const keyword = filterValues.keyword.toLowerCase();
-        if (
-          !property.description.toLowerCase().includes(keyword) &&
-          !property.location.toLowerCase().includes(keyword) &&
-          !property.city.toLowerCase().includes(keyword)
-        ) {
-          return false;
-        }
-      }
-
-      return true;
-    });
-
+    const filtered = applyFilters(houseData, filterValues);
     setFilteredData(filtered);
-  };
-
-  const clearFilters = () => {
-    setFilters(null);
-    setFilteredData(houseData);
   };
 
   if (isLoading) {
@@ -218,13 +221,9 @@ export default function Home() {
   }
 
   return (
-    <div className="w-full h-fit bg-[#fafafa]  py-10 px-10 flex flex-col gap-y-8">
-     
+    <div className="w-full h-fit bg-[#fafafa] py-10 px-10 flex flex-col gap-y-8">
       <PropertySearchFilter onFilter={handleFilter} />
-  
-      <HousesBoxes houseData={filters ? filteredData : houseData} />
+      <HousesBoxes houseData={filteredData} />
     </div>
   );
 }
-
-
