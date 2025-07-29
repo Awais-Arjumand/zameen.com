@@ -1,54 +1,121 @@
-import { redirect } from 'next/navigation';
-import { getServerSession } from 'next-auth';
-import { authOptions } from '../api/auth/[...nextauth]/route';
+import { redirect } from "next/navigation";
+import { getServerSession } from "next-auth";
+import { authOptions } from "../api/auth/[...nextauth]/route";
+import NavBar from "../components/NavBar/NavBar";
+import CompanyPropertySearchFilter from "../[company_name]/CompanyPropertySearchFilter/CompanyPropertySearchFilter";
+import CompanyHousesBoxes from "../[company_name]/CompanyHousesBoxes/CompanyHousesBoxes";
+import axios from "axios";
+
+const BACKEND_URL = process.env.NEXTAUTH_URL || "http://localhost:3000";
+
+const mapAPIData = (apiData) => {
+  return apiData.map((item) => {
+    let imageUrl = "/images/default-property.jpg";
+    if (item.image) {
+      if (item.image.startsWith("http")) {
+        imageUrl = item.image;
+      } else if (item.image.startsWith("/uploads/")) {
+        imageUrl = `${BACKEND_URL}${item.image}`;
+      } else {
+        imageUrl = item.image;
+      }
+    }
+
+    return {
+      id: item._id,
+      src: imageUrl,
+      images:
+        item.images?.map((img) =>
+          img.startsWith("http")
+            ? img
+            : img.startsWith("/uploads/")
+            ? `${BACKEND_URL}${img}`
+            : img
+        ) || [],
+      price: item.maxPrice || item.minPrice || "Unmentioned",
+      beds: item.beds,
+      Bath: item.Bath,
+      location: item.location,
+      Area: item.Area,
+      TotalArea: item.TotalArea,
+      areaUnit: item.areaUnit,
+      description: item.description,
+      city: item.city,
+      buyOrRent: item.buyOrRent,
+      category: item.category,
+      propertyDealerName: item.propertyDealerName,
+      createdAt: item.createdAt,
+      phone: item.phone,
+    };
+  });
+};
 
 export default async function CompanyPage({ params }) {
   const session = await getServerSession(authOptions);
-  
-  // Debug logs (after await)
-  console.log('Session data:', session);
-  console.log('URL params:', params);
-  
+
   if (!session?.user) {
-    redirect('/auth/signin');
+    redirect("/auth/signin");
   }
 
-  // Verify the company name matches the session
-  const companyNameFromSession = session.user?.companyName || '';
-  const companyNameFromParams = params.company_name || '';
+  // Get company name from session
+  const companyNameFromSession = session.user?.companyName;
 
-  if (companyNameFromSession && companyNameFromParams !== companyNameFromSession) {
-    // Redirect to correct company URL if mismatch
+  // Redirect if URL doesn't match session
+  if (
+    companyNameFromSession &&
+    params.company_name !== companyNameFromSession
+  ) {
     redirect(`/${companyNameFromSession}`);
   }
 
-  const displayCompanyName = (companyNameFromParams || companyNameFromSession || 'default').replace(/_/g, ' ');
+  // Fetch user data
+  let userData = null;
+  try {
+    const userRes = await fetch(
+      `http://localhost:3000/api/users?phone=${encodeURIComponent(
+        session.user.phone
+      )}`,
+      { next: { revalidate: 0 } }
+    );
+    userData = await userRes.json();
+  } catch (error) {
+    console.error("Error fetching user data:", error);
+  }
+
+  // Fetch properties
+  let properties = [];
+  try {
+    const propRes = await axios.get(`http://localhost:3000/api/user`);
+    properties = mapAPIData(propRes.data.data || []);
+  } catch (error) {
+    console.error("Error fetching properties:", error);
+  }
+
+  // Combine session and fetched data
+  const combinedData = {
+    ...session.user,
+    ...(userData?.data || {}),
+    fullName: userData?.data?.fullName || session.user?.fullName || "User",
+  };
 
   return (
-    <div className="min-h-screen bg-gray-100 mt-16">
-      <div className="max-w-7xl mx-auto px-4 py-8">
-        <h1 className="text-3xl font-bold text-gray-900">
-          Welcome to {displayCompanyName}
-        </h1>
-        
-        <div className="mt-4 p-4 bg-white rounded-lg shadow">
-          <p className="text-lg font-medium text-gray-700">
-            Logged in as: 
-            <span className="text-blue-600 ml-2">
-              {session.user?.name || session.user?.fullName || 'User'}
-            </span>
-          </p>
-          <p className="text-gray-600 mt-2">
-            Company: {displayCompanyName}
-          </p>
-          <p className="text-gray-600 mt-2">
-            Phone: {session.user?.phone || 'Not available'}
-          </p>
-        </div>
+    <div className="min-h-screen bg-gray-100">
+      <NavBar
+        logo={combinedData?.logo || "/images/Login/img2.svg"}
+        logoColor={combinedData?.logoColor || "#3B404C"}
+        userData={combinedData}
+      />
 
-        <p className="mt-4 text-lg text-gray-600">
-          This is your company dashboard.
-        </p>
+      <div className="mt-16 w-full h-fit bg-[#fafafa] py-10 px-10 flex flex-col gap-y-8">
+        <div className="max-w-7xl mx-auto w-full">
+          <CompanyPropertySearchFilter
+            logoColor={combinedData?.logoColor || "#3B404C"}
+          />
+          <CompanyHousesBoxes
+            logoColor={combinedData?.logoColor || "#3B404C"}
+            houseData={properties}
+          />
+        </div>
       </div>
     </div>
   );

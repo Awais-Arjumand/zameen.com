@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import mongoose from 'mongoose';
-import { User } from '@/models/User';
+import { User } from '../../../models/User';
 import path from 'path';
 import fs from 'fs/promises';
 
