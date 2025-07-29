@@ -9,8 +9,12 @@ export async function POST(request) {
     const client = await clientPromise;
     const db = client.db();
     
-    // Check if user exists
-    const user = await db.collection('users').findOne({ phone });
+    // Check if user exists and include companyName in the query
+    const user = await db.collection('users').findOne(
+      { phone },
+      { projection: { companyName: 1 } } // Only return companyName field
+    );
+    
     if (!user) {
       return new Response(
         JSON.stringify({ message: 'Phone number not registered' }),
@@ -29,7 +33,10 @@ export async function POST(request) {
     );
     
     return new Response(
-      JSON.stringify({ success: true }),
+      JSON.stringify({ 
+        success: true,
+        companyName: user.companyName // Include company name in response
+      }),
       { status: 200, headers: { 'Content-Type': 'application/json' } }
     );
   } catch (error) {

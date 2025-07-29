@@ -25,7 +25,15 @@ const handler = NextAuth({
             .collection("users")
             .updateOne({ _id: user._id }, { $unset: { verificationCode: "" } });
 
-          return { id: user._id, phone: user.phone };
+          return { 
+            id: user._id, 
+            phone: user.phone,
+            name: user.fullName,  // Include full name
+            fullName: user.fullName, // Duplicate for consistency
+            companyName: user.companyName, // Include company name
+            logo: user.logo, // Include logo path
+            logoColor: user.logoColor // Include logo color
+          };
         }
 
         return null;
@@ -37,6 +45,32 @@ const handler = NextAuth({
   pages: {
     signIn: "/auth/signin",
     verifyRequest: "/auth/verify",
+  },
+  callbacks: {
+    async jwt({ token, user }) {
+      // Persist user data to the token right after sign in
+      if (user) {
+        token.id = user.id;
+        token.phone = user.phone;
+        token.fullName = user.fullName;
+        token.companyName = user.companyName;
+        token.logo = user.logo;
+        token.logoColor = user.logoColor;
+      }
+      return token;
+    },
+    async session({ session, token }) {
+      // Send properties to the client
+      if (token) {
+        session.user.id = token.id;
+        session.user.phone = token.phone;
+        session.user.fullName = token.fullName;
+        session.user.companyName = token.companyName;
+        session.user.logo = token.logo;
+        session.user.logoColor = token.logoColor;
+      }
+      return session;
+    },
   },
 });
 

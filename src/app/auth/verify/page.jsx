@@ -1,7 +1,7 @@
 "use client";
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { signIn } from 'next-auth/react';
+import { signIn, useSession } from 'next-auth/react';
 import Image from 'next/image';
 
 export default function Verify() {
@@ -11,8 +11,16 @@ export default function Verify() {
   const [resending, setResending] = useState(false);
   const router = useRouter();
   const searchParams = useSearchParams();
+  const { data: session, status } = useSession();
   const phone = searchParams.get('phone');
-  const company = searchParams.get('company'); // Get company name from URL params
+  const company = searchParams.get('company');
+
+  // Handle successful authentication
+  useEffect(() => {
+    if (status === 'authenticated' && session?.user?.companyName) {
+      router.push(`/${session.user.companyName}`);
+    }
+  }, [status, session, router]);
 
   const handleDigitChange = (index, value) => {
     if (!/^\d*$/.test(value)) return;
@@ -54,8 +62,6 @@ export default function Verify() {
     }
   };
 
-
-
   const handleSubmit = async (e) => {
     e.preventDefault();
     
@@ -66,7 +72,7 @@ export default function Verify() {
     
     setLoading(true);
     setError('');
-  
+
     try {
       const result = await signIn('credentials', {
         redirect: false,
@@ -76,10 +82,8 @@ export default function Verify() {
 
       if (result?.error) {
         setError('Invalid verification code');
-      } else {
-        // After successful verification, redirect to company page
-        router.push(`/${company}`);
       }
+      // The useEffect will handle the redirect once session is updated
     } catch (err) {
       setError('Verification failed. Please try again.');
       console.error(err);
@@ -87,7 +91,6 @@ export default function Verify() {
       setLoading(false);
     }
   };
-
 
   return (
     <div className="relative w-full min-h-screen overflow-hidden bg-gray-100">
