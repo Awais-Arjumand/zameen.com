@@ -111,7 +111,7 @@ const Page = () => {
   };
 
   return (
-    <div className="w-full h-fit flex flex-col roboto gap-y-8 px-20 py-10 bg-[#f6f7fb] ">
+    <div className="w-full h-fit flex flex-col roboto gap-y-8 px-20 py-10 mt-16 bg-[#f6f7fb] ">
       <Link href={"/dealer-panel"} className="flex items-center gap-x-2">
         <IoChevronBackSharp />
         Back to Dealer Panel

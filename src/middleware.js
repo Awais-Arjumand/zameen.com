@@ -1,25 +1,20 @@
-import { NextResponse } from "next/server";
+// middleware.js
+import { NextResponse } from 'next/server';
+import { getToken } from 'next-auth/jwt';
 
-// Define public and admin routes
-const publicRoutes = ["/", "/property", "/property/:id"];
-const adminRoutes = ["/admin"];
+export async function middleware(request) {
+  const { pathname } = request.nextUrl;
+  const token = await getToken({ req: request });
 
-export function middleware(req) {
-  const { pathname } = req.nextUrl;
-  
-  // Check if the current path is a public route
-  const isPublicRoute = publicRoutes.some(route => 
-    route.includes(":id") ? pathname.startsWith("/property/") : pathname === route
-  );
+  // Redirect logged-in users away from auth pages
+  if (pathname.startsWith('/auth') && token) {
+    return NextResponse.redirect(new URL('/', request.url));
+  }
 
-  // Check if the current path is an admin route
-  const isAdminRoute = pathname.startsWith("/admin");
+  // Protect company pages
+  if (pathname.startsWith('/[') && !token) {
+    return NextResponse.redirect(new URL('/auth/signin', request.url));
+  }
 
-  // For admin routes, you can implement authentication later
-  // Currently allowing all requests to proceed
   return NextResponse.next();
 }
-
-export const config = {
-  matcher: ["/((?!.*\\..*|_next).*)", "/", "/(api|trpc)(.*)"],
-};

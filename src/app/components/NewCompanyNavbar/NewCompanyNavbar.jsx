@@ -1,12 +1,14 @@
 "use client";
+
 import { useState, useEffect, useRef } from "react";
 import Link from "next/link";
 import { signOut, useSession } from "next-auth/react";
 import Image from "next/image";
 import { usePathname } from "next/navigation";
 import { TbLogout } from "react-icons/tb";
+import axios from "axios";
 
-const NavBar = () => {
+const NewCompanyNavbar = () => {
   const { data: session } = useSession();
   const [isMobile, setIsMobile] = useState(false);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
@@ -19,9 +21,7 @@ const NavBar = () => {
   const IsAdmin = pathname === "/admin";
   const IsHome = pathname === "/";
   const IsPropertyId = pathname.startsWith("/property/");
-
-
-  const showAuthButtons = !IsAdmin && !isDealerPanel; // New helper variable
+  const showAuthButtons = !IsAdmin && !isDealerPanel;
 
   useEffect(() => {
     const checkScreenSize = () => {
@@ -33,28 +33,31 @@ const NavBar = () => {
     return () => window.removeEventListener("resize", checkScreenSize);
   }, []);
 
+  // ✅ Fetch user data using Axios
   useEffect(() => {
-    if (isAuthenticated && session?.user?.phone) {
-      const fetchUserData = async () => {
-        try {
-          const response = await fetch("http://localhost:3000/api/users");
-          const data = await response.json();
-          if (data.data) {
-            const currentUser = data.data.find(
-              (user) => user.phone === session.user.phone
-            );
-            if (currentUser) {
-              setUserData(currentUser);
-            }
-          }
-        } catch (error) {
-          console.error("Error fetching user data:", error);
-        }
-      };
+    if (!session?.user?.phone) return;
 
-      fetchUserData();
-    }
-  }, [isAuthenticated, session]);
+    const fetchUserData = async () => {
+      try {
+        const response = await axios.get("http://localhost:3000/api/users");
+        console.log("sadadd");
+
+        const users = response.data?.data || [];
+
+        const currentUser = users.find(
+          (user) => user.phone === session.user.phone
+        );
+
+        if (currentUser) {
+          setUserData(currentUser);
+        }
+      } catch (error) {
+        console.error("Error fetching user data:", error);
+      }
+    };
+
+    fetchUserData();
+  }, [session?.user?.phone]);
 
   useEffect(() => {
     const handleClickOutside = (event) => {
@@ -63,10 +66,12 @@ const NavBar = () => {
       }
     };
 
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => {
-      document.removeEventListener("mousedown", handleClickOutside);
-    };
+    if (typeof document !== "undefined") {
+      document.addEventListener("mousedown", handleClickOutside);
+      return () => {
+        document.removeEventListener("mousedown", handleClickOutside);
+      };
+    }
   }, []);
 
   const toggleDropdown = () => {
@@ -78,31 +83,39 @@ const NavBar = () => {
     setIsDropdownOpen(false);
   };
 
+  // ✅ Dynamic values from userData
+  const buttonColor = userData?.logoColor || "#3B404C";
+  const logoUrl = userData?.logo
+    ? `http://localhost:3000/${userData.logo.replace(/\\/g, "/")}`
+    : "/images/Login/img2.svg";
+
   return (
     <nav className="w-full bg-white shadow-md fixed top-0 z-30">
       <div className="flex h-fit items-center justify-between gap-x-4 shadow-lg bg-[#f7f7f7] px-4 py-4 text-sm text-gray-700 md:flex lg:px-12">
         <Link href={"/"} className="text-2xl font-bold text-gray-500">
           <Image
             alt="Nav Logo"
-            src={"/images/Login/img2.svg"}
+            src={logoUrl}
             width={150}
             height={150}
-            className="w-32 md:w-40"
+            className="w-32 md:w-40 object-contain"
           />
         </Link>
 
         <div className="flex items-center gap-x-4">
           {showAuthButtons && !IsHome && !IsPropertyId && !isDealerPanel && (
             <Link
-              className="flex rounded bg-[#3B404C] px-4 py-1.5 justify-center items-center w-fit h-fit text-xs font-normal text-white transition-all duration-300 hover:bg-gray-500"
+              className="flex rounded px-4 py-1.5 justify-center items-center w-fit h-fit text-xs font-normal text-white transition-all duration-300 hover:opacity-90"
               href={isAuthenticated ? "/dealer-panel" : "/auth/signin"}
+              style={{ backgroundColor: buttonColor }}
             >
               My Property
             </Link>
           )}
 
           {isAuthenticated ? (
-            showAuthButtons && !IsPropertyId && (
+            showAuthButtons &&
+            !IsPropertyId && (
               <div className="relative" ref={dropdownRef}>
                 <button
                   onClick={toggleDropdown}
@@ -155,18 +168,19 @@ const NavBar = () => {
               </div>
             )
           ) : showAuthButtons ? (
-            // Fixed conditional rendering for auth buttons
             IsHome || IsPropertyId ? (
               <Link
-                className="flex rounded bg-[#3B404C] px-4 py-1.5 justify-center items-center w-fit h-fit text-xs font-normal text-white transition-all duration-300 hover:bg-gray-500"
+                className="flex rounded px-4 py-1.5 justify-center items-center w-fit h-fit text-xs font-normal text-white transition-all duration-300 hover:opacity-90"
                 href="/auth/signup"
+                style={{ backgroundColor: buttonColor }}
               >
                 Join Us
               </Link>
             ) : (
               <Link
-                className="flex rounded bg-[#3B404C] px-4 py-1.5 justify-center items-center w-fit h-fit text-xs font-normal text-white transition-all duration-300 hover:bg-gray-500"
+                className="flex rounded px-4 py-1.5 justify-center items-center w-fit h-fit text-xs font-normal text-white transition-all duration-300 hover:opacity-90"
                 href="/auth/signin"
+                style={{ backgroundColor: buttonColor }}
               >
                 Login
               </Link>
@@ -175,18 +189,22 @@ const NavBar = () => {
         </div>
       </div>
 
-      {isMobile && showAuthButtons && (IsHome || IsPropertyId) && !isDealerPanel && (
-        <div className="flex justify-between items-center p-4 md:hidden">
-          <Link
-            className="rounded bg-[#3B404C] px-4 py-1.5 flex justify-center items-center w-fit h-fit text-xs font-normal text-white transition-all duration-300 hover:bg-gray-500"
-            href={isAuthenticated ? "/dealer-panel" : "/auth/signup"}
-          >
-            {isAuthenticated ? "My Property" : "Join Us"}
-          </Link>
-        </div>
-      )}
+      {isMobile &&
+        showAuthButtons &&
+        (IsHome || IsPropertyId) &&
+        !isDealerPanel && (
+          <div className="flex justify-between items-center p-4 md:hidden">
+            <Link
+              className="rounded px-4 py-1.5 flex justify-center items-center w-fit h-fit text-xs font-normal text-white transition-all duration-300 hover:opacity-90"
+              href={isAuthenticated ? "/dealer-panel" : "/auth/signup"}
+              style={{ backgroundColor: buttonColor }}
+            >
+              {isAuthenticated ? "My Property" : "Join Us"}
+            </Link>
+          </div>
+        )}
     </nav>
   );
 };
 
-export default NavBar;
+export default NewCompanyNavbar;

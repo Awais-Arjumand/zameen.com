@@ -1,5 +1,8 @@
 @import "tailwindcss";
-
+*{
+  font-family: "Roboto", sans-serif;
+  
+}
 .react-select-container .react-select__control {
   background-color: white;
   border-color: silver;
@@ -106,7 +109,7 @@
 .pagination li.active {
   background-color: #1CC323;
   color: white;
-  font-weight: bold;
+  font-weight: 500;
 }
 
 .pagination li.disabled {

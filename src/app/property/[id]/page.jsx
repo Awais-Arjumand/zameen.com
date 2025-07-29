@@ -102,7 +102,7 @@ export default function PropertyDetail({ params: paramsPromise }) {
           city: item.city,
           area: item.location,
           phone:item.phone || "**********",
-          title: item.title || item.description,
+          title: (item.title || item.description).split('\n')[0],
           rating: 4.5,
         };
         setProperty(mapped);
@@ -138,7 +138,7 @@ export default function PropertyDetail({ params: paramsPromise }) {
   }
 
   return (
-    <div className="w-full min-h-screen bg-[#f7f7f7] py-6 px-2 md:px-6">
+    <div className="w-full min-h-screen bg-[#f7f7f7] py-6 px-2 md:px-6 mt-16">
       <div className="max-w-full mx-auto">
         <Link
           href="/"
@@ -155,7 +155,7 @@ export default function PropertyDetail({ params: paramsPromise }) {
           {/* Info */}
           <div className="flex-1 bg-white rounded-lg shadow p-6">
             <div className="flex flex-wrap items-center gap-2 mb-2">
-              <h1 className="text-xl md:text-2xl font-bold text-gray-900 mr-2">
+              <h1 className="text-xl md:text-2xl font-bold text-gray-900 mr-2 truncate">
                 {property.title}
               </h1>
               <span className="bg-green-100 text-green-800 px-2 py-1 rounded text-xs font-semibold">

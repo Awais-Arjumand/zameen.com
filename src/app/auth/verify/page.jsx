@@ -12,6 +12,7 @@ export default function Verify() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const phone = searchParams.get('phone');
+  const company = searchParams.get('company'); // Get company name from URL params
 
   const handleDigitChange = (index, value) => {
     if (!/^\d*$/.test(value)) return;
@@ -53,6 +54,8 @@ export default function Verify() {
     }
   };
 
+
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     
@@ -63,7 +66,7 @@ export default function Verify() {
     
     setLoading(true);
     setError('');
-
+  
     try {
       const result = await signIn('credentials', {
         redirect: false,
@@ -72,14 +75,10 @@ export default function Verify() {
       });
 
       if (result?.error) {
-        try {
-          const errorData = JSON.parse(result.error);
-          setError(errorData.message || 'Invalid verification code');
-        } catch {
-          setError(result.error || 'Invalid verification code');
-        }
+        setError('Invalid verification code');
       } else {
-        router.push('/');
+        // After successful verification, redirect to company page
+        router.push(`/${company}`);
       }
     } catch (err) {
       setError('Verification failed. Please try again.');
@@ -88,6 +87,7 @@ export default function Verify() {
       setLoading(false);
     }
   };
+
 
   return (
     <div className="relative w-full min-h-screen overflow-hidden bg-gray-100">
@@ -141,7 +141,7 @@ export default function Verify() {
                 </div>
               )}
               
-              {/* Updated OTP Input Boxes */}
+              {/* OTP Input Boxes */}
               <div className="flex justify-between gap-2 mb-6">
                 {digits.map((digit, index) => (
                   <input

@@ -7,39 +7,46 @@ import { useState, useEffect } from "react";
 import NavBar from "./NavBar/NavBar";
 import Footer from "./Footer/Footer";
 import Loader from "./Loader/Loader";
+import NewCompanyNavbar from "./NewCompanyNavbar/NewCompanyNavbar";
 
 export default function ClientLayout({ children }) {
   const pathname = usePathname();
-  const isUserRole = pathname.startsWith("/user-role");
 
+  const isUserRole = pathname.startsWith("/user-role");
   const isSignIn = pathname.startsWith("/auth/signin");
   const isSignUp = pathname.startsWith("/auth/signup");
   const isVerify = pathname.startsWith("/auth/verify");
-
+  const isCompanyPage = /^\/[^/]+\/[^/]+$/.test(pathname); // matches /[company]/[id]
 
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // Simulate page loading
     setLoading(true);
-
     const timer = setTimeout(() => {
       setLoading(false);
-    }, 800); // Show loader for 800ms on each page transition
-
+    }, 800);
     return () => clearTimeout(timer);
   }, [pathname]);
 
   return (
     <>
       {loading && <Loader />}
-      {!isUserRole && !isVerify && !isSignIn && !isSignUp  && (
+  
+      {/* Show default navbar only when not on company route or auth/user-role pages */}
+      {!isUserRole && !isVerify && !pathname.startsWith("/auth") && !isCompanyPage && (
         <NavBar />
       )}
+  
+      {/* Show new company navbar only for /[company]/[id] and not on any auth routes */}
+      {isCompanyPage && !pathname.startsWith("/auth") && <NewCompanyNavbar />}
+  
       {children}
-      {!isUserRole && !isVerify && !isSignIn && !isSignUp  && (
+  
+      {/* Show footer only if not on auth, user-role, or company page */}
+      {!isUserRole && !isVerify && !pathname.startsWith("/auth") && !isCompanyPage && (
         <Footer />
       )}
+  
       <ToastContainer
         position="top-right"
         autoClose={3000}
@@ -54,4 +61,5 @@ export default function ClientLayout({ children }) {
       />
     </>
   );
+  
 }

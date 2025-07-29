@@ -2,10 +2,13 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
+import axios from 'axios';
 
 const SignUp = () => {
-  const [firstName, setFirstName] = useState('');
-  const [lastName, setLastName] = useState('');
+  const [fullName, setFullName] = useState('');
+  const [companyName, setCompanyName] = useState('');
+  const [logoFile, setLogoFile] = useState(null);
+  const [logoColor, setLogoColor] = useState('#3B404C');
   const [phone, setPhone] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
@@ -15,35 +18,70 @@ const SignUp = () => {
     e.preventDefault();
     setLoading(true);
     setError('');
-
+  
+    // Validate all fields
+    if (!fullName.trim()) {
+      setError("Full name is required");
+      setLoading(false);
+      return;
+    }
+    if (!companyName.trim()) {
+      setError("Company name is required");
+      setLoading(false);
+      return;
+    }
+    if (!logoFile) {
+      setError("Company logo is required");
+      setLoading(false);
+      return;
+    }
+    if (!/^\+?[1-9]\d{1,14}$/.test(phone)) {
+      setError("Please enter a valid phone number with country code");
+      setLoading(false);
+      return;
+    }
+  
     try {
-      const response = await fetch('/api/auth/signup', {
+      const formData = new FormData();
+      formData.append('fullName', fullName.trim());
+      // Format company name
+      const formattedCompany = companyName.trim()
+        .replace(/\s+/g, '_')
+        .toLowerCase();
+      formData.append('companyName', formattedCompany);
+      formData.append('logo', logoFile);
+      formData.append('logoColor', logoColor);
+      formData.append('phone', phone.trim());
+  
+      const response = await fetch('/api/users', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ firstName, lastName, phone }),
+        body: formData,
+        // Headers are automatically set by browser for FormData
       });
-
+  
       const data = await response.json();
-      
+  
       if (!response.ok) {
-        setError(data.message || 'Failed to sign up');
-        return;
+        throw new Error(data.message || 'Failed to create account');
       }
-      
-      router.push(`/auth/verify?phone=${encodeURIComponent(phone)}`);
+  
+      router.push(`/auth/verify?phone=${encodeURIComponent(phone)}&company=${formattedCompany}`);
     } catch (err) {
-      setError('Failed to send verification code');
-      console.error(err);
+      setError(err.message || 'Failed to create account');
+      console.error("Signup Error:", err);
     } finally {
       setLoading(false);
     }
   };
 
+  const handleLogoChange = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      setLogoFile(file);
+    }
+  };
   return (
-    <div className="relative w-full min-h-screen overflow-hidden bg-gray-100">
-      {/* Background Image */}
+    <div className="relative w-full min-h-screen roboto overflow-hidden bg-gray-100 ">
       <div className="absolute inset-0 z-0">
         <Image
           src="/images/Login/img1.svg"
@@ -54,9 +92,7 @@ const SignUp = () => {
         />
       </div>
 
-      {/* Content */}
       <div className="relative z-10 min-h-screen flex flex-col pb-6 md:pb-10 gap-y-8 md:gap-y-16 px-4 sm:px-6">
-        {/* Header with Logo */}
         <div className="w-full max-w-6xl pt-8 md:pt-16 px-4 md:pl-28">
           <div className="flex items-center gap-2 mb-2">
             <Image
@@ -69,7 +105,6 @@ const SignUp = () => {
           </div>
         </div>
 
-        {/* Sign Up Form */}
         <div className="w-full flex justify-center md:justify-start px-4 md:pl-28 pt-4 md:pt-8">
           <div className="w-full max-w-md md:max-w-[500px] bg-white rounded-xl p-6 md:p-8 shadow-lg">
             <div className="text-left mb-6 md:mb-8 flex flex-col items-center justify-center">
@@ -89,35 +124,83 @@ const SignUp = () => {
               )}
               
               <div className="space-y-1">
-                <label htmlFor="firstName" className="block text-sm font-medium text-[#6F6F6F]">
-                  First Name
+                <label htmlFor="fullName" className="block text-sm font-medium text-[#6F6F6F]">
+                  Full Name
                 </label>
                 <input
-                  id="firstName"
-                  name="firstName"
+                  id="fullName"
+                  name="fullName"
                   type="text"
                   required
+                  minLength={2}
                   className="w-full px-4 py-2 md:py-3 border border-[#D9D9D9] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#3B404C]"
-                  placeholder="First Name"
-                  value={firstName}
-                  onChange={(e) => setFirstName(e.target.value)}
+                  placeholder="Full Name"
+                  value={fullName}
+                  onChange={(e) => setFullName(e.target.value)}
                 />
               </div>
 
               <div className="space-y-1">
-                <label htmlFor="lastName" className="block text-sm font-medium text-[#6F6F6F]">
-                  Last Name
+                <label htmlFor="companyName" className="block text-sm font-medium text-[#6F6F6F]">
+                  Company Name
                 </label>
                 <input
-                  id="lastName"
-                  name="lastName"
+                  id="companyName"
+                  name="companyName"
                   type="text"
                   required
+                  minLength={2}
                   className="w-full px-4 py-2 md:py-3 border border-[#D9D9D9] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#3B404C]"
-                  placeholder="Last Name"
-                  value={lastName}
-                  onChange={(e) => setLastName(e.target.value)}
+                  placeholder="Company Name"
+                  value={companyName}
+                  onChange={(e) => setCompanyName(e.target.value)}
                 />
+              </div>
+
+              <div className="space-y-1">
+                <label htmlFor="logo" className="block text-sm font-medium text-[#6F6F6F]">
+                  Company Logo
+                </label>
+                <div className="flex items-center gap-3">
+                  <input
+                    id="logo"
+                    name="logo"
+                    type="file"
+                    required
+                    accept="image/*"
+                    className="flex-1 text-sm text-gray-500
+                      file:mr-4 file:py-2 file:px-4
+                      file:rounded-lg file:border-0
+                      file:text-sm file:font-medium
+                      file:bg-[#3B404C] file:text-white
+                      hover:file:bg-[#2D3138]"
+                    onChange={handleLogoChange}
+                  />
+                  {logoFile && (
+                    <div className="w-10 h-10 rounded roboto flex items-center justify-center" 
+                         style={{ backgroundColor: logoColor }}>
+                      <span className="text-white text-xs">Logo</span>
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              <div className="space-y-1">
+                <label htmlFor="logoColor" className="block text-sm font-medium text-[#6F6F6F]">
+                  Logo Color
+                </label>
+                <div className="flex items-center gap-3">
+                  <input
+                    id="logoColor"
+                    name="logoColor"
+                    type="color"
+                    required
+                    className="w-16 h-10 border border-gray-300 rounded cursor-pointer"
+                    value={logoColor}
+                    onChange={(e) => setLogoColor(e.target.value)}
+                  />
+                  <span className="text-sm font-medium">{logoColor}</span>
+                </div>
               </div>
 
               <div className="space-y-1">
@@ -129,8 +212,9 @@ const SignUp = () => {
                   name="phone"
                   type="tel"
                   required
+                  pattern="^\+[1-9]\d{1,14}$"
                   className="w-full px-4 py-2 md:py-3 border border-[#D9D9D9] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#3B404C]"
-                  placeholder="+1 (555) 123-4567"
+                  placeholder="+923001234567"
                   value={phone}
                   onChange={(e) => setPhone(e.target.value)}
                 />
@@ -143,7 +227,7 @@ const SignUp = () => {
                   loading ? 'opacity-50 cursor-not-allowed' : ''
                 }`}
               >
-                {loading ? 'Sending...' : 'Send Verification Code'}
+                {loading ? 'Creating Account...' : 'Send Verification Code'}
               </button>
             </form>
             
