@@ -62,11 +62,7 @@ export default function AdminPageClient({ apiData = [] }) {
     };
   }, [isModalOpen]);
 
-  const handleRefresh = () => {
-    setIsRefreshing(true);
-    router.refresh();
-    setTimeout(() => setIsRefreshing(false), 1000);
-  };
+  
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -99,7 +95,7 @@ export default function AdminPageClient({ apiData = [] }) {
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.5 }}
-      className="p-4 sm:p-6 md:p-8 lg:p-10 w-full min-h-screen roboto bg-[#fafafa] text-gray-800 overflow-auto"
+      className="p-4 sm:p-6 md:p-8 lg:p-10 w-full min-h-screen roboto mt-16 flex flex-col gap-y-16 bg-[#fafafa] text-gray-800 overflow-auto"
     >
       <div className="w-full flex justify-center items-center mb-4 sm:mb-6">
         <motion.h1 

@@ -2,9 +2,9 @@ import { redirect } from "next/navigation";
 import { getServerSession } from "next-auth";
 import { authOptions } from "../api/auth/[...nextauth]/route";
 import NavBar from "../components/NavBar/NavBar";
-import CompanyPropertySearchFilter from "../[company_name]/CompanyPropertySearchFilter/CompanyPropertySearchFilter";
 import CompanyHousesBoxes from "../[company_name]/CompanyHousesBoxes/CompanyHousesBoxes";
 import axios from "axios";
+import PropertySearchFilter from "../components/PropertySearchFilter/PropertySearchFilter";
 
 const BACKEND_URL = process.env.NEXTAUTH_URL || "http://localhost:3000";
 
@@ -72,12 +72,13 @@ export default async function CompanyPage({ params }) {
   let userData = null;
   try {
     const userRes = await fetch(
-      `http://localhost:3000/api/users?phone=${encodeURIComponent(
+      `http://localhost:3000/api/users/${encodeURIComponent(
         session.user.phone
       )}`,
       { next: { revalidate: 0 } }
     );
-    userData = await userRes.json();
+    const userResponse = await userRes.json();
+    userData = userResponse.data;
   } catch (error) {
     console.error("Error fetching user data:", error);
   }
@@ -94,22 +95,23 @@ export default async function CompanyPage({ params }) {
   // Combine session and fetched data
   const combinedData = {
     ...session.user,
-    ...(userData?.data || {}),
-    fullName: userData?.data?.fullName || session.user?.fullName || "User",
+    ...(userData || {}),
+    fullName: userData?.fullName || session.user?.fullName || "User",
   };
 
   return (
-    <div className="min-h-screen bg-gray-100">
+    <div className="w-full min-h-screen bg-gray-100 flex flex-col gap-y-5">
       <NavBar
         logo={combinedData?.logo || "/images/Login/img2.svg"}
         logoColor={combinedData?.logoColor || "#3B404C"}
         userData={combinedData}
       />
 
-      <div className="mt-16 w-full h-fit bg-[#fafafa] py-10 px-10 flex flex-col gap-y-8">
-        <div className="max-w-7xl mx-auto w-full">
-          <CompanyPropertySearchFilter
+      <div className="mt-16 w-full h-fit bg-[#fafafa] py-10 px-6 flex flex-col gap-y-8">
+        <div className="max-w-7xl mx-auto w-full flex flex-col gap-y-5">
+          <PropertySearchFilter
             logoColor={combinedData?.logoColor || "#3B404C"}
+            // onFilter={yourFilterFunction}
           />
           <CompanyHousesBoxes
             logoColor={combinedData?.logoColor || "#3B404C"}

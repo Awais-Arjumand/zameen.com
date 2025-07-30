@@ -3,6 +3,8 @@ import React, { useState, useEffect } from "react";
 import dynamic from "next/dynamic";
 import { useRouter, useSearchParams } from "next/navigation";
 import { CiSearch } from "react-icons/ci";
+import { useSession } from "next-auth/react";
+import axios from "axios";
 
 const Select = dynamic(() => import("react-select"), {
   ssr: false,
@@ -13,8 +15,30 @@ const Select = dynamic(() => import("react-select"), {
 
 const PropertySearchFilter = ({ onFilter }) => {
   const router = useRouter();
+  const { data: session, status } = useSession();
+  const [user, setUser] = useState(null);
+
   const searchParams = useSearchParams();
 
+  useEffect(() => {
+    const fetchUserByPhone = async () => {
+      if (session?.user?.phone) {
+        try {
+          const res = await axios.get(
+            `http://localhost:3000/api/users/${encodeURIComponent(session.user.phone)}`
+          );
+          // console.log("📦 User fetched by phone:", res.data.data);
+          setUser(res.data.data);
+          // console.log(user.logoColor);
+          
+        } catch (error) {
+          console.error("❌ Error fetching user by phone:", error.message);
+        }
+      }
+    };
+
+    fetchUserByPhone();
+  }, [session]);
   const [filters, setFilters] = useState({
     purpose: searchParams.get("purpose") || "",
     category: searchParams.get("category") || "",
@@ -152,7 +176,6 @@ const PropertySearchFilter = ({ onFilter }) => {
   return (
     <div className="w-full mx-auto px-4 py-6 bg-white rounded-lg shadow-md border border-gray-200">
       <div className="mb-6">
-        <h2 className="text-xl font-semibold text-gray-800 mb-4">Join Us</h2>
         
         {/* Search Bar */}
         <div className="flex flex-col md:flex-row gap-4 mb-6">
@@ -169,7 +192,7 @@ const PropertySearchFilter = ({ onFilter }) => {
           <div className="flex gap-2">
             <button 
               onClick={handleSubmit}
-              className="px-4 py-2 bg-[#3B404C] hover:bg-gray-600 transition-all cursor-pointer duration-300 text-white rounded-lg"
+              className={`px-4 py-2 bg-[#3B404C] hover:bg-gray-600 transition-all cursor-pointer duration-300 text-white rounded-lg`}
             >
               Search
             </button>
@@ -184,10 +207,6 @@ const PropertySearchFilter = ({ onFilter }) => {
 
         {/* Filters */}
         <div className="space-y-4">
-          <div className="flex items-center gap-2">
-            <div className="w-2 h-4 bg-blue-600 rounded-sm"></div>
-            <h3 className="font-medium">Filters</h3>
-          </div>
 
           <form onSubmit={handleSubmit}>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">

@@ -3,6 +3,8 @@ import React, { useState, useEffect } from "react";
 import dynamic from "next/dynamic";
 import { useRouter, useSearchParams } from "next/navigation";
 import { CiSearch } from "react-icons/ci";
+import axios from "axios";
+import { useSession } from "next-auth/react";
 
 const Select = dynamic(() => import("react-select"), {
   ssr: false,
@@ -11,9 +13,10 @@ const Select = dynamic(() => import("react-select"), {
   ),
 });
 
-const CompanyPropertySearchFilter = ({ onFilter ,logoColor}) => {
+const CompanyPropertySearchFilter = ({ onFilter, logoColor }) => {
   const router = useRouter();
   const searchParams = useSearchParams();
+  const { data: session } = useSession();
 
   const [filters, setFilters] = useState({
     purpose: searchParams.get("purpose") || "",
@@ -30,6 +33,7 @@ const CompanyPropertySearchFilter = ({ onFilter ,logoColor}) => {
   });
 
   const [isClient, setIsClient] = useState(false);
+  const [userData, setUserData] = useState(null);
 
   useEffect(() => {
     setIsClient(true);
@@ -37,6 +41,28 @@ const CompanyPropertySearchFilter = ({ onFilter ,logoColor}) => {
       onFilter(filters);
     }
   }, []);
+
+  useEffect(() => {
+    const fetchUserByPhone = async () => {
+      if (!session?.user?.phone) {
+        console.log("No phone number found in session");
+        return;
+      }
+      
+      try {
+        const response = await axios.get(
+          `http://localhost:3000/api/users?phone=${encodeURIComponent(session?.user?.phone)}`
+        );
+        setUserData(response.data.data);
+        console.log(userData);
+        
+      } catch (error) {
+        console.error("Failed to fetch user:", error);
+      }
+    };
+
+    fetchUserByPhone();
+  }, [session]);
 
   useEffect(() => {
     const params = new URLSearchParams();
@@ -152,8 +178,6 @@ const CompanyPropertySearchFilter = ({ onFilter ,logoColor}) => {
   return (
     <div className="w-full mx-auto px-4 py-6 bg-white rounded-lg shadow-md border border-gray-200">
       <div className="mb-6">
-        <h2 className="text-xl font-semibold text-gray-800 mb-4">Join Us</h2>
-        
         {/* Search Bar */}
         <div className="flex flex-col md:flex-row gap-4 mb-6">
           <div className="flex-1 flex items-center gap-2 border border-gray-300 rounded-lg px-4 py-2">
@@ -167,15 +191,17 @@ const CompanyPropertySearchFilter = ({ onFilter ,logoColor}) => {
             />
           </div>
           <div className="flex gap-2">
-            <button 
+            <button
               onClick={handleSubmit}
-              className={"px-4 py-2 bg-[#3B404C] hover:bg-gray-600 transition-all cursor-pointer duration-300 text-white rounded-lg"}
+              style={{ backgroundColor: logoColor || "#3B404C" }}
+              className="px-4 py-2 hover:opacity-90 transition-all cursor-pointer duration-300 text-white rounded-lg"
             >
               Search
             </button>
             <button
               onClick={clearFilters}
-              className="px-4 py-2 bg-[#3B404C] hover:hover:bg-gray-600 cursor-pointer transition-all duration-300 text-white rounded-lg"
+              style={{ backgroundColor: logoColor || "#3B404C" }}
+              className="px-4 py-2 hover:opacity-90 cursor-pointer transition-all duration-300 text-white rounded-lg"
             >
               Clear
             </button>
@@ -184,28 +210,35 @@ const CompanyPropertySearchFilter = ({ onFilter ,logoColor}) => {
 
         {/* Filters */}
         <div className="space-y-4">
-          <div className="flex items-center gap-2">
-            <div className="w-2 h-4 bg-blue-600 rounded-sm"></div>
-            <h3 className="font-medium">Filters</h3>
-          </div>
+        
 
           <form onSubmit={handleSubmit}>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
               {/* Purpose */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Purpose</label>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Purpose
+                </label>
                 <div className="flex gap-2">
                   <button
                     type="button"
                     onClick={() => handleChange("purpose", "Buy")}
-                    className={`px-4 py-2 rounded-lg ${filters.purpose === "Buy" ? 'bg-blue-600 text-white' : 'bg-gray-200 text-gray-800'}`}
+                    style={{ 
+                      backgroundColor: filters.purpose === "Buy" ? logoColor || "#3B404C" : "#e2e8f0",
+                      color: filters.purpose === "Buy" ? "white" : "#1a202c"
+                    }}
+                    className="px-4 py-2 rounded-lg transition-all duration-300"
                   >
                     Buy
                   </button>
                   <button
                     type="button"
                     onClick={() => handleChange("purpose", "Rent")}
-                    className={`px-4 py-2 rounded-lg ${filters.purpose === "Rent" ? 'bg-blue-600 text-white' : 'bg-gray-200 text-gray-800'}`}
+                    style={{ 
+                      backgroundColor: filters.purpose === "Rent" ? logoColor || "#3B404C" : "#e2e8f0",
+                      color: filters.purpose === "Rent" ? "white" : "#1a202c"
+                    }}
+                    className="px-4 py-2 rounded-lg transition-all duration-300"
                   >
                     Rent
                   </button>
@@ -214,12 +247,15 @@ const CompanyPropertySearchFilter = ({ onFilter ,logoColor}) => {
 
               {/* Category */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Category</label>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Category
+                </label>
                 <Select
                   options={categoryOptions}
                   value={
-                    categoryOptions.find((opt) => opt.value === filters.category) ||
-                    null
+                    categoryOptions.find(
+                      (opt) => opt.value === filters.category
+                    ) || null
                   }
                   onChange={(selected) =>
                     handleChange("category", selected?.value || "")
@@ -233,11 +269,14 @@ const CompanyPropertySearchFilter = ({ onFilter ,logoColor}) => {
 
               {/* City */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">City</label>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  City
+                </label>
                 <Select
                   options={cityOptions}
                   value={
-                    cityOptions.find((opt) => opt.value === filters.city) || null
+                    cityOptions.find((opt) => opt.value === filters.city) ||
+                    null
                   }
                   onChange={(selected) =>
                     handleChange("city", selected?.value || "")
@@ -251,11 +290,14 @@ const CompanyPropertySearchFilter = ({ onFilter ,logoColor}) => {
 
               {/* Beds */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Beds</label>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Beds
+                </label>
                 <Select
                   options={bedsOptions}
                   value={
-                    bedsOptions.find((opt) => opt.value === filters.beds) || null
+                    bedsOptions.find((opt) => opt.value === filters.beds) ||
+                    null
                   }
                   onChange={(selected) =>
                     handleChange("beds", selected?.value || "")
@@ -269,7 +311,9 @@ const CompanyPropertySearchFilter = ({ onFilter ,logoColor}) => {
 
               {/* Price */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Price (PKR)</label>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Price (PKR)
+                </label>
                 <div className="grid grid-cols-2 gap-2">
                   <input
                     type="text"
@@ -290,7 +334,9 @@ const CompanyPropertySearchFilter = ({ onFilter ,logoColor}) => {
 
               {/* Area */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Area</label>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Area
+                </label>
                 <div className="grid grid-cols-2 gap-2">
                   <input
                     type="text"
@@ -311,7 +357,9 @@ const CompanyPropertySearchFilter = ({ onFilter ,logoColor}) => {
 
               {/* Location */}
               <div className="sm:col-span-2">
-                <label className="block text-sm font-medium text-gray-700 mb-1">Location</label>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Location
+                </label>
                 <input
                   type="text"
                   value={filters.location}
