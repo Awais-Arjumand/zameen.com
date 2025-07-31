@@ -74,8 +74,7 @@ export default function DealerPropertyTable({
     const id = propertyToDelete._id;
     setDeletingId(id);
     try {
-      const isCompanyProperty =
-        propertyToDelete.propertyDealerName === companyName;
+      const isCompanyProperty = propertyToDelete.status === "company-website";
 
       const endpoint = isCompanyProperty
         ? `http://localhost:3000/api/company-properties/${id}`
@@ -166,8 +165,7 @@ export default function DealerPropertyTable({
     if (!selectedProperty) return;
 
     try {
-      const isCompanyProperty =
-        selectedProperty.propertyDealerName === companyName;
+      const isCompanyProperty = formData.status === "company-website";
 
       const endpoint = isCompanyProperty
         ? `http://localhost:3000/api/company-properties/${selectedProperty._id}`
@@ -641,7 +639,7 @@ export default function DealerPropertyTable({
                 Are you sure you want to delete this property? This action
                 cannot be undone.
               </p>
-              <p className="mb-4 font-semibold text-sm md:text-base">
+              <p className="mb-4 font-semibold text-sm md:text-base break-words whitespace-pre-wrap overflow-hidden">
                 "{propertyToDelete.description}" at {propertyToDelete.location}
               </p>
 
