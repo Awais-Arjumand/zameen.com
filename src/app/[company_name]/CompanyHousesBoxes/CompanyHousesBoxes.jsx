@@ -3,7 +3,7 @@ import ReactPaginate from "react-paginate";
 import CompanyHomeBoxesDetails from "./CompanyHomeBoxesDetails";
 import { useRef, useState } from "react";
 
-const CompanyHousesBoxes = ({ houseData }) => {
+const CompanyHousesBoxes = ({ houseData, companyName }) => { // Add companyName prop
   const housesRef = useRef(null);
   const itemsPerPage = 12;
   const [currentPage, setCurrentPage] = useState(0);
@@ -33,7 +33,11 @@ const CompanyHousesBoxes = ({ houseData }) => {
       <div className="w-full h-fit bg-[#f7f8fa] px-3 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 py-5">
         {currentItems.length > 0 ? (
           currentItems.map((item) => (
-            <CompanyHomeBoxesDetails key={item.id} {...item} />
+            <CompanyHomeBoxesDetails 
+              key={item.id} 
+              {...item} 
+              companyName={companyName} // Pass companyName prop
+            />
           ))
         ) : (
           <div className="col-span-3 text-center py-10">

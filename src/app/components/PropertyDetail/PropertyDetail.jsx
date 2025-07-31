@@ -1,89 +1,42 @@
-
 "use client";
-
-import { useEffect, useState, use } from "react";
+import { useEffect, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { LuBed, LuToilet } from "react-icons/lu";
-import { TbRulerMeasure2 } from "react-icons/tb";
+import { TbRulerMeasure } from "react-icons/tb";
 import { FaWhatsapp, FaStar } from "react-icons/fa6";
 import { IoIosCall, IoIosArrowBack } from "react-icons/io";
 import { useRouter } from "next/navigation";
 import dynamic from "next/dynamic";
 import axios from "axios";
-import Loader from "../../auth/loading";
 
-// Gallery component for main image + thumbnails
-function ImageGallery({ images }) {
-  const [selected, setSelected] = useState(0);
-  return (
-    <div>
-      <div className="relative w-full h-72 md:h-96 rounded-lg overflow-hidden mb-2">
-        <Image
-          src={images[selected]}
-          alt="Property Image"
-          fill
-          className="object-cover"
-          priority
-        />
-      </div>
-      <div className="flex gap-2 mt-1 overflow-x-auto pb-1">
-        {images.map((img, idx) => (
-          <button
-            key={idx}
-            className={`relative w-24 h-14 rounded border-2 ${
-              selected === idx ? "border-green-600" : "border-transparent"
-            }`}
-            onClick={() => setSelected(idx)}
-            type="button"
-          >
-            <Image
-              src={img}
-              alt="thumb"
-              fill
-              className="object-cover rounded"
-            />
-          </button>
-        ))}
-      </div>
-    </div>
-  );
-}
-
-const MapComponent = dynamic(() => import("../../components/MapComponent"), {
+const MapComponent = dynamic(() => import("../MapComponent"), {
   ssr: false,
 });
 
-async function getParams() {
-  return { id: "" };
-}
-
-export default function PropertyDetail({ params: paramsPromise }) {
+export default function PropertyDetail({ params }) {
+  const { company_name, cardid } = params;
   const [property, setProperty] = useState(null);
   const [similarProperties, setSimilarProperties] = useState([]);
   const [loading, setLoading] = useState(true);
   const router = useRouter();
-  const params = use(paramsPromise || getParams());
 
   useEffect(() => {
-    if (!params.id) return;
+    if (!cardid) return;
     const fetchProperty = async () => {
       try {
-        const res = await axios.get(
-          `http://localhost:3000/api/user/${params.id}`
-        );
+        const res = await axios.get(`http://localhost:3000/api/user/${cardid}`);
         const item = res.data.data;
-        // Dummy images for gallery
         const galleryImages = [
           item.image?.startsWith("http")
             ? item.image
             : item.image?.startsWith("/uploads/")
             ? `http://localhost:3000${item.image}`
             : item.image || "/images/default-property.jpg",
-          "/public/images/default-property.jpg",
-          "/public/images/default-img.png.jpg",
-          "/public/images/HomesBoxesImages/img1.png",
-          "/public/images/HomesBoxesImages/img2.png",
+          "/images/default-property.jpg",
+          "/images/default-img.png",
+          "/images/HomesBoxesImages/img1.png",
+          "/images/HomesBoxesImages/img2.png",
         ];
         const mapped = {
           id: item._id,
@@ -102,7 +55,7 @@ export default function PropertyDetail({ params: paramsPromise }) {
           BuyOrRent: item.buyOrRent,
           city: item.city,
           area: item.location,
-          phone:item.phone || "**********",
+          phone: item.phone || "**********",
           title: item.title || item.description,
           rating: 4.5,
         };
@@ -119,16 +72,13 @@ export default function PropertyDetail({ params: paramsPromise }) {
       }
     };
     fetchProperty();
-  }, [params.id]);
+  }, [cardid]);
 
   const handleSimilarPropertyClick = (id) => {
-    router.push(`/property/${id}`);
+    router.push(`/${company_name}/${id}`);
     window.scrollTo(0, 0);
   };
 
-  if (loading) {
-    return <Loader />;
-  }
 
   if (!property) {
     return (
@@ -142,15 +92,43 @@ export default function PropertyDetail({ params: paramsPromise }) {
     <div className="w-full min-h-screen bg-[#f7f7f7] py-6 px-2 md:px-6">
       <div className="max-w-full mx-auto">
         <Link
-          href="/"
+          href={`/${company_name}`}
           className="flex items-center text-green-600 hover:text-green-800 mb-6"
         >
           <IoIosArrowBack className="mr-2" /> Back to Properties
         </Link>
+
         {/* Image Gallery */}
         <div className="bg-white rounded-lg shadow p-4 mb-6">
-          <ImageGallery images={property.images} />
+          <div className="relative w-full h-72 md:h-96 rounded-lg overflow-hidden mb-2">
+            <Image
+              src={property.images[0]}
+              alt="Property Image"
+              fill
+              className="object-cover"
+              priority
+            />
+          </div>
+          <div className="flex gap-2 mt-1 overflow-x-auto pb-1">
+            {property.images.map((img, idx) => (
+              <button
+                key={idx}
+                className={`relative w-24 h-14 rounded border-2 ${
+                  0 === idx ? "border-green-600" : "border-transparent"
+                }`}
+                type="button"
+              >
+                <Image
+                  src={img}
+                  alt="thumb"
+                  fill
+                  className="object-cover rounded"
+                />
+              </button>
+            ))}
+          </div>
         </div>
+
         {/* Property Info & Contact */}
         <div className="flex flex-col md:flex-row gap-6">
           {/* Info */}
@@ -160,11 +138,10 @@ export default function PropertyDetail({ params: paramsPromise }) {
                 {property.title}
               </h1>
               <span className="bg-green-100 text-green-800 px-2 py-1 rounded text-xs font-semibold">
-                For Sale
+                {property.BuyOrRent}
               </span>
             </div>
             <div className="flex items-center gap-2 mb-2">
-              {/* Rating stars */}
               {[1, 2, 3, 4, 5].map((i) => (
                 <FaStar
                   key={i}
@@ -189,7 +166,7 @@ export default function PropertyDetail({ params: paramsPromise }) {
                 <LuToilet className="mr-1" /> {property.Bath} Bathrooms
               </div>
               <div className="flex items-center text-gray-700 text-sm">
-                <TbRulerMeasure2 className="mr-1" /> {property.Area}{" "}
+                <TbRulerMeasure className="mr-1" /> {property.Area}{" "}
                 {property.areaUnit}
               </div>
             </div>
@@ -284,13 +261,13 @@ export default function PropertyDetail({ params: paramsPromise }) {
               >
                 <div className="relative h-40 w-full">
                   <Image
-                    src={prop.images?.[0] || prop.src}
+                    src={prop.images?.[0]}
                     alt={prop.description}
                     fill
                     className="object-cover"
                   />
                   <span className="absolute top-2 left-2 bg-green-100 text-green-800 px-2 py-1 rounded text-xs font-semibold">
-                    For Sale
+                    {prop.BuyOrRent}
                   </span>
                 </div>
                 <div className="p-4">
@@ -312,7 +289,7 @@ export default function PropertyDetail({ params: paramsPromise }) {
                       <LuToilet className="mr-1" /> {prop.Bath}
                     </span>
                     <span className="flex items-center">
-                      <TbRulerMeasure2 className="mr-1" /> {prop.Area}{" "}
+                      <TbRulerMeasure className="mr-1" /> {prop.Area}{" "}
                       {prop.areaUnit}
                     </span>
                   </div>

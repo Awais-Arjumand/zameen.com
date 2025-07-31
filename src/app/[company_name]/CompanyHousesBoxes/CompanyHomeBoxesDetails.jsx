@@ -21,12 +21,11 @@ const CompanyHomeBoxesDetails = ({
   buyOrRent,
   priceUnit,
   areaUnit,
+  companyName // Add companyName prop
 }) => {
-  // Image handling with animation support
   const [isHovered, setIsHovered] = useState(false);
   const defaultImg = "/images/default-property.jpg";
   
-  // Validate the image URL
   const isValidUrl = (url) => {
     try {
       new URL(url);
@@ -38,7 +37,6 @@ const CompanyHomeBoxesDetails = ({
 
   const [imgSrc, setImgSrc] = useState(isValidUrl(src) ? src : defaultImg);
 
-  // Animation variants
   const cardVariants = {
     hidden: { opacity: 0, y: 20 },
     visible: { 
@@ -69,7 +67,7 @@ const CompanyHomeBoxesDetails = ({
       onHoverEnd={() => setIsHovered(false)}
       className="w-full h-fit bg-white rounded-xl shadow-md overflow-hidden border border-gray-200 hover:shadow-lg transition-all duration-300 flex flex-col"
     >
-      <Link href={`/property/${id}`} className="w-full h-full">
+      <Link href={`/${companyName}/${id}`} className="w-full h-full"> {/* Updated link */}
         <div className="relative w-full h-48 overflow-hidden">
           <motion.div
             initial={{ opacity: 0 }}
@@ -87,7 +85,7 @@ const CompanyHomeBoxesDetails = ({
             />
           </motion.div>
 
-          <div className={`absolute top-2 left-2 px-3 roboto py-1 rounded text-xs font-semibold ${buyOrRent === 'For Rent' ? 'bg-gray-700 text-white' : 'bg-green-500 text-white'}`}>
+          <div className={`absolute top-2 left-2 px-3 roboto py-1 rounded text-xs font-semibold ${buyOrRent === 'For Rent' ? 'bg-gray-700 text-white' : 'bg-primary text-white'}`}>
             {buyOrRent}
           </div>
         </div>
@@ -99,7 +97,7 @@ const CompanyHomeBoxesDetails = ({
 
           <motion.p 
             variants={priceVariants}
-            className="text-[#1CC323] font-medium roboto text-base mb-0.5"
+            className="text-primary font-medium roboto text-base mb-0.5"
           >
             PKR {price.toLocaleString()} {priceUnit}
           </motion.p>
