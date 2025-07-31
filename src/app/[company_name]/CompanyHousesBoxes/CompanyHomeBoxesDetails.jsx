@@ -1,3 +1,4 @@
+// components/CompanyHomeBoxesDetails.js
 "use client";
 import Image from "next/image";
 import Link from "next/link";
@@ -21,21 +22,31 @@ const CompanyHomeBoxesDetails = ({
   buyOrRent,
   priceUnit,
   areaUnit,
-  companyName // Add companyName prop
+  companyName
 }) => {
   const [isHovered, setIsHovered] = useState(false);
   const defaultImg = "/images/default-property.jpg";
-  
-  const isValidUrl = (url) => {
-    try {
-      new URL(url);
-      return true;
-    } catch (e) {
-      return false;
-    }
-  };
+  const [imgSrc, setImgSrc] = useState(src || defaultImg);
 
-  const [imgSrc, setImgSrc] = useState(isValidUrl(src) ? src : defaultImg);
+  useEffect(() => {
+    // Verify the image URL when component mounts
+    const verifyImage = async () => {
+      try {
+        if (!src || src === defaultImg) {
+          setImgSrc(defaultImg);
+          return;
+        }
+
+        const res = await fetch(src, { method: 'HEAD' });
+        if (!res.ok) throw new Error('Image not found');
+      } catch (error) {
+        console.error('Image load error:', error);
+        setImgSrc(defaultImg);
+      }
+    };
+
+    verifyImage();
+  }, [src]);
 
   const cardVariants = {
     hidden: { opacity: 0, y: 20 },
@@ -67,7 +78,7 @@ const CompanyHomeBoxesDetails = ({
       onHoverEnd={() => setIsHovered(false)}
       className="w-full h-fit bg-white rounded-xl shadow-md overflow-hidden border border-gray-200 hover:shadow-lg transition-all duration-300 flex flex-col"
     >
-      <Link href={`/${companyName}/${id}`} className="w-full h-full"> {/* Updated link */}
+      <Link href={`/${companyName}/${id}`} className="w-full h-full">
         <div className="relative w-full h-48 overflow-hidden">
           <motion.div
             initial={{ opacity: 0 }}
@@ -82,6 +93,8 @@ const CompanyHomeBoxesDetails = ({
               className="object-cover rounded-t-xl"
               sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
               onError={() => setImgSrc(defaultImg)}
+              priority={false}
+              unoptimized={imgSrc.startsWith('http')} // Only optimize local images
             />
           </motion.div>
 

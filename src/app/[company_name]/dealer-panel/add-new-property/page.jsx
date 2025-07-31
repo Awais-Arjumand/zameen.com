@@ -85,6 +85,7 @@ const Page = () => {
         propertyDealerEmail: contactData.email,
         Phone: contactData.phone,
         propertyDealerName: contactData.name,
+        senderName:session?.user?.name,
         companyType: companyType.value
       };
 
@@ -102,8 +103,13 @@ const Page = () => {
         apiFormData.append("video", mediaData.video);
       }
 
+      // Determine the API endpoint based on company type
+      const apiEndpoint = companyType.value === 'company website' 
+        ? "http://localhost:3000/api/company-properties"
+        : "http://localhost:3000/api/user";
+
       const response = await axios.post(
-        "http://localhost:3000/api/user",
+        apiEndpoint,
         apiFormData,
         { headers: { "Content-Type": "multipart/form-data" } }
       );

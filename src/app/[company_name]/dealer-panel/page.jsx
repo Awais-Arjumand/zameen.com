@@ -267,7 +267,7 @@ export default function DealerPanel() {
               whileHover={{ scale: 1.03 }}
               whileTap={{ scale: 0.97 }}
               onClick={() => handleFilterButtonClick("all")}
-              className={`px-4 py-2 rounded-lg transition-all duration-300 ${
+              className={`px-4 py-2 rounded-lg transition-all duration-300 cursor-pointer ${
                 activeFilter === "all"
                   ? "bg-primary text-white"
                   : "bg-gray-200 text-gray-700"
@@ -279,7 +279,7 @@ export default function DealerPanel() {
               whileHover={{ scale: 1.03 }}
               whileTap={{ scale: 0.97 }}
               onClick={() => handleFilterButtonClick("company")}
-              className={`px-4 py-2 rounded-lg transition-all duration-300 ${
+              className={`px-4 py-2 rounded-lg transition-all duration-300 cursor-pointer ${
                 activeFilter === "company"
                   ? "bg-primary text-white"
                   : "bg-gray-200 text-gray-700"
@@ -291,7 +291,7 @@ export default function DealerPanel() {
               whileHover={{ scale: 1.03 }}
               whileTap={{ scale: 0.97 }}
               onClick={() => handleFilterButtonClick("private")}
-              className={`px-4 py-2 rounded-lg transition-all duration-300 ${
+              className={`px-4 py-2 rounded-lg transition-all duration-300 cursor-pointer ${
                 activeFilter === "private"
                   ? "bg-primary text-white"
                   : "bg-gray-200 text-gray-700"

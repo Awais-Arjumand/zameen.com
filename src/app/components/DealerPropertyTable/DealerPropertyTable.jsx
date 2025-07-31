@@ -288,7 +288,7 @@ export default function DealerPropertyTable({
                   <td className="px-3 py-2 text-xs md:text-sm">
                     {property.city || "-"}
                   </td>
-                  <td className="px-3 py-2 text-xs md:text-sm">
+                  <td className="px-3 py-2 text-xs md:text-sm whitespace-nowrap">
                     {property.location || "-"}
                   </td>
                   <td className="px-3 py-2 text-xs md:text-sm">

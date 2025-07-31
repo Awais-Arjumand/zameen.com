@@ -1,9 +1,10 @@
+// components/CompanyHousesBoxes.js
 "use client";
 import ReactPaginate from "react-paginate";
 import CompanyHomeBoxesDetails from "./CompanyHomeBoxesDetails";
 import { useRef, useState } from "react";
 
-const CompanyHousesBoxes = ({ houseData, companyName }) => { // Add companyName prop
+const CompanyHousesBoxes = ({ houseData, companyName }) => {
   const housesRef = useRef(null);
   const itemsPerPage = 12;
   const [currentPage, setCurrentPage] = useState(0);
@@ -22,7 +23,7 @@ const CompanyHousesBoxes = ({ houseData, companyName }) => { // Add companyName 
   return (
     <div
       ref={housesRef}
-      className="w-full h-fit  rounded-lg flex flex-col gap-y-2"
+      className="w-full h-fit rounded-lg flex flex-col gap-y-2"
     >
       <div className="w-full h-10 border-b border-gray-300 flex items-center justify-start bg-[#fafafa] px-3 pb-4">
         <p className="text-gray-700 font-medium text-base">
@@ -36,7 +37,7 @@ const CompanyHousesBoxes = ({ houseData, companyName }) => { // Add companyName 
             <CompanyHomeBoxesDetails 
               key={item.id} 
               {...item} 
-              companyName={companyName} // Pass companyName prop
+              companyName={companyName}
             />
           ))
         ) : (
