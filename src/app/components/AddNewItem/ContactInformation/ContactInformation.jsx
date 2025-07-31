@@ -196,7 +196,7 @@ const ContactInformation = forwardRef((props, ref) => {
                   {index === 0 ? (
                     <button
                       type="button"
-                      className="flex-shrink-0 w-12 h-12 cursor-pointer flex items-center justify-center bg-[#3B404C] text-white rounded-lg hover:bg-gray-500 transition"
+                      className="flex-shrink-0 w-12 h-12 cursor-pointer flex items-center justify-center bg-primary text-white rounded-lg hover:bg-gray-500 transition"
                       onClick={handleAddMobile}
                     >
                       <IoMdAdd size={20} />
