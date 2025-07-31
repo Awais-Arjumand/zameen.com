@@ -1,7 +1,7 @@
 "use client";
 import { useEffect, useState } from "react";
 import axios from "axios";
-import DealerPropertyTable from "../components/DealerPropertyTable/DealerPropertyTable";
+import DealerPropertyTable from "../../components/DealerPropertyTable/DealerPropertyTable";
 import Link from "next/link";
 import { IoIosArrowRoundBack } from "react-icons/io";
 import { useRouter } from "next/navigation";
@@ -14,7 +14,11 @@ export default function DealerPanel() {
   const [properties, setProperties] = useState([]);
   const [filteredProperties, setFilteredProperties] = useState([]);
   const [error, setError] = useState(null);
-  const [userName, setUserName] = useState({ firstName: "", lastName: "" });
+  const [userData, setUserData] = useState({
+    fullName: "",
+    phone: "",
+    companyName: ""
+  });
   const [filters, setFilters] = useState({
     location: "",
     city: "",
@@ -27,40 +31,40 @@ export default function DealerPanel() {
   const router = useRouter();
 
   useEffect(() => {
-    const fetchUserName = async () => {
+    const fetchUserData = async () => {
       if (status === "authenticated" && session?.user?.phone) {
         try {
           const response = await axios.get(
-            `http://localhost:3000/api/users?phone=${encodeURIComponent(
-              session.user.phone
-            )}`
+            `http://localhost:3000/api/users/${session.user.phone}`
           );
-          if (response.data && response.data.firstName) {
-            setUserName({
-              firstName: response.data.firstName,
-              lastName: response.data.lastName,
+          if (response.data && response.data.data) {
+            setUserData({
+              fullName: response.data.data.fullName,
+              phone: response.data.data.phone,
+              companyName: response.data.data.companyName
             });
           }
         } catch (err) {
-          // fallback to empty name
+          console.error("Error fetching user data:", err);
+          setError("Failed to load user data. Please try again later.");
         }
       }
     };
-    fetchUserName();
+    fetchUserData();
   }, [status, session]);
 
   useEffect(() => {
-    if (status === "authenticated" && session?.user) {
+    if (status === "authenticated" && userData.fullName) {
       fetchDealerProperties();
     }
-  }, [status, session]);
+  }, [status, userData.fullName]);
 
   useEffect(() => {
     applyFilters();
   }, [filters, properties]);
 
   const refreshProperties = () => {
-    if (status === "authenticated" && session?.user) {
+    if (status === "authenticated" && userData.fullName) {
       setIsRefreshing(true);
       fetchDealerProperties();
       setTimeout(() => setIsRefreshing(false), 1000);
@@ -69,15 +73,16 @@ export default function DealerPanel() {
 
   const fetchDealerProperties = async () => {
     try {
-      const fullName = `${userName.firstName || ""} ${
-        userName.lastName || ""
-      }`.trim();
       const response = await axios.get(
-        `http://localhost:3000/api/user?senderName=${encodeURIComponent(
-          fullName
-        )}`
+        `http://localhost:3000/api/user?phone=${encodeURIComponent(userData.phone)}`
       );
-      setProperties(response.data.data || []);
+      
+      // Filter properties where senderName matches user's fullName
+      const filtered = response.data.data.filter(
+        property => property.senderName === userData.fullName
+      );
+      
+      setProperties(filtered || []);
       router.refresh();
     } catch (err) {
       console.error("Error fetching dealer properties:", err);
@@ -163,7 +168,7 @@ export default function DealerPanel() {
       transition={{ duration: 0.5 }}
       className="w-full min-h-screen bg-gray-50 p-4 md:p-8 roboto mt-16"
     >
-      <div className="max-w-full mx-auto flex flex-col gap-y-4 md:gap-y-6">
+      <div className="max-w-full mx-auto flex flex-col gap-y-4 md:gap-y-8">
         <motion.div 
           initial={{ y: -20, opacity: 0 }}
           animate={{ y: 0, opacity: 1 }}
@@ -172,18 +177,17 @@ export default function DealerPanel() {
         >
           <div className="w-full md:w-fit flex flex-col gap-y-2 md:gap-y-4">
             <Link
-              className="cursor-pointer bg-transparent flex gap-x-3 items-center text-sm md:text-base"
-              href="/"
+              className="cursor-pointer bg-transparent flex gap-x-3 items-center text-primary text-sm md:text-base"
+              href={`/${userData?.companyName?.replace(/\s+/g, "-") || ""}`}
             >
-              <IoIosArrowRoundBack className="text-xl" />
+              <IoIosArrowRoundBack className="text-2xl" />
               <span>Back to Properties</span>
             </Link>
             <div className="w-full md:w-fit flex flex-col gap-y-1 md:gap-y-3">
               <h1 className="text-xl md:text-2xl font-bold roboto">
-                Property list
               </h1>
-              <h1 className="text-sm md:text-base font-mono roboto">
-                Welcome to Dealer Panel
+              <h1 className="text-base md:text-xl font-semibold roboto">
+                Welcome to Dealer Panel, {userData.fullName} 👋✨
               </h1>
             </div>
           </div>
@@ -208,7 +212,7 @@ export default function DealerPanel() {
               whileTap={{ scale: 0.95 }}
             >
               <Link
-                className="px-4 py-2.5 cursor-pointer transition-all duration-300 bg-green-600 hover:bg-green-700 text-white rounded-lg shadow flex justify-center items-center"
+                className="px-4 py-2.5 cursor-pointer transition-all duration-300 bg-primary  text-white rounded-lg shadow flex justify-center items-center"
                 href="/addnewitem"
               >
                 + Add New Property
@@ -231,7 +235,7 @@ export default function DealerPanel() {
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
               onClick={clearFilters}
-              className="px-4 py-2 sm:px-5 sm:py-3 text-sm font-normal text-white cursor-pointer bg-[#3B404C] hover:bg-gray-500 rounded-lg transition-all duration-300 w-full sm:w-auto text-center"
+              className="px-4 py-2 sm:px-5 sm:py-3 text-sm font-normal text-white cursor-pointer bg-primary rounded-lg transition-all duration-300 w-full sm:w-auto text-center"
             >
               Clear All Filters
             </motion.button>
