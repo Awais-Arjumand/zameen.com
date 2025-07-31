@@ -1,5 +1,5 @@
 "use client";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import axios from "axios";
 import DealerPropertyTable from "../../components/DealerPropertyTable/DealerPropertyTable";
 import Link from "next/link";
@@ -11,13 +11,14 @@ import { motion, AnimatePresence } from "framer-motion";
 
 export default function DealerPanel() {
   const { data: session, status } = useSession();
-  const [properties, setProperties] = useState([]);
+  const [userProperties, setUserProperties] = useState([]);
+  const [companyProperties, setCompanyProperties] = useState([]);
   const [filteredProperties, setFilteredProperties] = useState([]);
   const [error, setError] = useState(null);
   const [userData, setUserData] = useState({
     fullName: "",
     phone: "",
-    companyName: ""
+    companyName: "",
   });
   const [filters, setFilters] = useState({
     location: "",
@@ -28,6 +29,7 @@ export default function DealerPanel() {
     sortBy: "",
   });
   const [isRefreshing, setIsRefreshing] = useState(false);
+  const [activeFilter, setActiveFilter] = useState("all"); // 'all', 'company', 'private'
   const router = useRouter();
 
   useEffect(() => {
@@ -41,7 +43,7 @@ export default function DealerPanel() {
             setUserData({
               fullName: response.data.data.fullName,
               phone: response.data.data.phone,
-              companyName: response.data.data.companyName
+              companyName: response.data.data.companyName,
             });
           }
         } catch (err) {
@@ -53,18 +55,36 @@ export default function DealerPanel() {
     fetchUserData();
   }, [status, session]);
 
+  const activeProperties = useMemo(() => {
+    if (activeFilter === "all") {
+      return [
+        ...userProperties,
+        ...companyProperties.filter(
+          (cp) => !userProperties.some((up) => up._id === cp._id)
+        ),
+      ];
+    } else if (activeFilter === "company") {
+      return companyProperties;
+    } else if (activeFilter === "private") {
+      return userProperties.filter(
+        (up) => !up.propertyDealerName || up.propertyDealerName !== userData.companyName
+      );
+    }
+    return [];
+  }, [userProperties, companyProperties, activeFilter, userData.companyName]);
+
   useEffect(() => {
-    if (status === "authenticated" && userData.fullName) {
+    if (status === "authenticated" && userData.phone) {
       fetchDealerProperties();
     }
-  }, [status, userData.fullName]);
+  }, [status, userData.phone]);
 
   useEffect(() => {
     applyFilters();
-  }, [filters, properties]);
+  }, [filters, activeProperties]);
 
   const refreshProperties = () => {
-    if (status === "authenticated" && userData.fullName) {
+    if (status === "authenticated" && userData.phone) {
       setIsRefreshing(true);
       fetchDealerProperties();
       setTimeout(() => setIsRefreshing(false), 1000);
@@ -73,19 +93,28 @@ export default function DealerPanel() {
 
   const fetchDealerProperties = async () => {
     try {
-      const response = await axios.get(
-        `http://localhost:3000/api/user?phone=${encodeURIComponent(userData.phone)}`
+      // Fetch user properties
+      const userResponse = await axios.get(
+        `http://localhost:3000/api/user?phone=${encodeURIComponent(
+          userData.phone
+        )}`
       );
-      
+
       // Filter properties where senderName matches user's fullName
-      const filtered = response.data.data.filter(
-        property => property.senderName === userData.fullName
+      const userProps = userResponse.data.data.filter(
+        (property) => property.senderName === userData.fullName
       );
+      setUserProperties(userProps || []);
+
+      // Fetch company properties
+      const companyResponse = await axios.get(
+        "http://localhost:3000/api/company-properties"
+      );
+      setCompanyProperties(companyResponse.data.data || []);
       
-      setProperties(filtered || []);
       router.refresh();
     } catch (err) {
-      console.error("Error fetching dealer properties:", err);
+      console.error("Error fetching properties:", err);
       setError("Failed to load properties. Please try again later.");
     }
   };
@@ -110,7 +139,7 @@ export default function DealerPanel() {
   };
 
   const applyFilters = () => {
-    let temp = [...properties];
+    let temp = [...activeProperties];
 
     if (filters.location) {
       temp = temp.filter((p) =>
@@ -147,9 +176,13 @@ export default function DealerPanel() {
     setFilteredProperties(temp);
   };
 
+  const handleFilterButtonClick = (filterType) => {
+    setActiveFilter(filterType);
+  };
+
   if (error) {
     return (
-      <motion.div 
+      <motion.div
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         className="w-full h-screen flex items-center justify-center bg-gray-50"
@@ -169,7 +202,7 @@ export default function DealerPanel() {
       className="w-full min-h-screen bg-gray-50 p-4 md:p-8 roboto mt-16"
     >
       <div className="max-w-full mx-auto flex flex-col gap-y-4 md:gap-y-8">
-        <motion.div 
+        <motion.div
           initial={{ y: -20, opacity: 0 }}
           animate={{ y: 0, opacity: 1 }}
           transition={{ duration: 0.5 }}
@@ -184,8 +217,7 @@ export default function DealerPanel() {
               <span>Back to Properties</span>
             </Link>
             <div className="w-full md:w-fit flex flex-col gap-y-1 md:gap-y-3">
-              <h1 className="text-xl md:text-2xl font-bold roboto">
-              </h1>
+              <h1 className="text-xl md:text-2xl font-bold roboto"></h1>
               <h1 className="text-base md:text-xl font-semibold roboto">
                 Welcome to Dealer Panel, {userData.fullName} 👋✨
               </h1>
@@ -200,20 +232,23 @@ export default function DealerPanel() {
             >
               <motion.span
                 animate={{ rotate: isRefreshing ? 360 : 0 }}
-                transition={{ duration: 1, repeat: isRefreshing ? Infinity : 0 }}
+                transition={{
+                  duration: 1,
+                  repeat: isRefreshing ? Infinity : 0,
+                }}
               >
                 <LuRefreshCw />
               </motion.span>
               Refresh
             </motion.button>
 
-            <motion.div
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
-            >
+            <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
               <Link
-                className="px-4 py-2.5 cursor-pointer transition-all duration-300 bg-primary  text-white rounded-lg shadow flex justify-center items-center"
-                href="/addnewitem"
+                className="px-4 py-2.5 cursor-pointer transition-all duration-300 bg-primary text-white rounded-lg shadow flex justify-center items-center"
+                href={`/${userData.companyName?.replace(
+                  /\s+/g,
+                  "-"
+                )}/dealer-panel/add-new-property`}
               >
                 + Add New Property
               </Link>
@@ -227,6 +262,45 @@ export default function DealerPanel() {
           transition={{ duration: 0.5, delay: 0.1 }}
           className="bg-white rounded-lg shadow p-4 flex flex-col gap-y-4"
         >
+          <div className="flex flex-wrap gap-2 mb-4">
+            <motion.button
+              whileHover={{ scale: 1.03 }}
+              whileTap={{ scale: 0.97 }}
+              onClick={() => handleFilterButtonClick("all")}
+              className={`px-4 py-2 rounded-lg transition-all duration-300 cursor-pointer ${
+                activeFilter === "all"
+                  ? "bg-primary text-white"
+                  : "bg-gray-200 text-gray-700"
+              }`}
+            >
+              All Properties
+            </motion.button>
+            <motion.button
+              whileHover={{ scale: 1.03 }}
+              whileTap={{ scale: 0.97 }}
+              onClick={() => handleFilterButtonClick("company")}
+              className={`px-4 py-2 rounded-lg transition-all duration-300 cursor-pointer ${
+                activeFilter === "company"
+                  ? "bg-primary text-white"
+                  : "bg-gray-200 text-gray-700"
+              }`}
+            >
+              Company Properties
+            </motion.button>
+            <motion.button
+              whileHover={{ scale: 1.03 }}
+              whileTap={{ scale: 0.97 }}
+              onClick={() => handleFilterButtonClick("private")}
+              className={`px-4 py-2 rounded-lg transition-all duration-300 cursor-pointer ${
+                activeFilter === "private"
+                  ? "bg-primary text-white"
+                  : "bg-gray-200 text-gray-700"
+              }`}
+            >
+              Private Properties
+            </motion.button>
+          </div>
+
           <div className="w-full h-fit flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
             <h1 className="text-base md:text-lg font-bold roboto">
               Filters & Sorting
@@ -255,7 +329,9 @@ export default function DealerPanel() {
                       onChange={handleFilterChange}
                       className="w-full outline-none px-3 py-3 placeholder:text-gray-300 text-sm md:text-base"
                     >
-                      <option value="">{key === "purpose" ? "Purpose" : "Sort By"}</option>
+                      <option value="">
+                        {key === "purpose" ? "Purpose" : "Sort By"}
+                      </option>
                       {key === "purpose" ? (
                         <>
                           <option value="Buy">Buy</option>
@@ -274,8 +350,8 @@ export default function DealerPanel() {
                     type="text"
                     name={key}
                     placeholder={
-                      key === "dealerName" 
-                        ? "Property Dealer Name" 
+                      key === "dealerName"
+                        ? "Property Dealer Name"
                         : key.charAt(0).toUpperCase() + key.slice(1)
                     }
                     value={value}
@@ -291,6 +367,8 @@ export default function DealerPanel() {
         <DealerPropertyTable
           properties={filteredProperties}
           onDelete={refreshProperties}
+          activeFilter={activeFilter}
+          companyName={userData.companyName}
         />
       </div>
     </motion.div>

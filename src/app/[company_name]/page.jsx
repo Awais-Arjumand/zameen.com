@@ -1,3 +1,4 @@
+// pages/[company_name]/page.js
 import { redirect } from "next/navigation";
 import { getServerSession } from "next-auth";
 import { authOptions } from "../api/auth/[...nextauth]/route";
@@ -6,46 +7,51 @@ import CompanyHousesBoxes from "../[company_name]/CompanyHousesBoxes/CompanyHous
 import axios from "axios";
 import PropertySearchFilter from "../components/PropertySearchFilter/PropertySearchFilter";
 
-const BACKEND_URL = process.env.NEXTAUTH_URL || "http://localhost:3000";
+const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:3000";
 
 const mapAPIData = (apiData) => {
   return apiData.map((item) => {
+    // Handle image URL
     let imageUrl = "/images/default-property.jpg";
     if (item.image) {
       if (item.image.startsWith("http")) {
         imageUrl = item.image;
       } else if (item.image.startsWith("/uploads/")) {
         imageUrl = `${BACKEND_URL}${item.image}`;
+      } else if (item.image.startsWith("uploads/")) {
+        imageUrl = `${BACKEND_URL}/${item.image}`;
       } else {
-        imageUrl = item.image;
+        imageUrl = `${BACKEND_URL}/uploads/${item.image}`;
       }
     }
+
+    // Handle images array
+    const images = item.images?.map((img) => {
+      if (img.startsWith("http")) return img;
+      if (img.startsWith("/uploads/")) return `${BACKEND_URL}${img}`;
+      if (img.startsWith("uploads/")) return `${BACKEND_URL}/${img}`;
+      return `${BACKEND_URL}/uploads/${img}`;
+    }) || [imageUrl]; // Fallback to main image if images array is empty
 
     return {
       id: item._id,
       src: imageUrl,
-      images:
-        item.images?.map((img) =>
-          img.startsWith("http")
-            ? img
-            : img.startsWith("/uploads/")
-            ? `${BACKEND_URL}${img}`
-            : img
-        ) || [],
+      images: images,
       price: item.maxPrice || item.minPrice || "Unmentioned",
-      beds: item.beds,
-      Bath: item.Bath,
-      location: item.location,
-      Area: item.Area,
-      TotalArea: item.TotalArea,
-      areaUnit: item.areaUnit,
-      description: item.description,
-      city: item.city,
-      buyOrRent: item.buyOrRent,
-      category: item.category,
-      propertyDealerName: item.propertyDealerName,
+      priceUnit: item.priceUnit || "",
+      beds: item.beds || 0,
+      Bath: item.Bath || 0,
+      location: item.location || "",
+      Area: item.Area || "",
+      TotalArea: item.TotalArea || "",
+      areaUnit: item.areaUnit || "",
+      description: item.description || "",
+      city: item.city || "",
+      buyOrRent: item.buyOrRent || "Buy",
+      category: item.category || "",
+      propertyDealerName: item.propertyDealerName || "",
       createdAt: item.createdAt,
-      phone: item.phone,
+      phone: item.phone || "",
     };
   });
 };
@@ -65,7 +71,7 @@ export default async function CompanyPage({ params }) {
   let userData = null;
   try {
     const userRes = await fetch(
-      `http://localhost:3000/api/users/${encodeURIComponent(session.user.phone)}`,
+      `${BACKEND_URL}/api/users/${encodeURIComponent(session.user.phone)}`,
       { next: { revalidate: 0 } }
     );
     const userResponse = await userRes.json();
@@ -74,19 +80,26 @@ export default async function CompanyPage({ params }) {
     console.error("Error fetching user data:", error);
   }
 
-  let properties = [];
-  try {
-    const propRes = await axios.get(`http://localhost:3000/api/user`);
-    properties = mapAPIData(propRes.data.data || []);
-  } catch (error) {
-    console.error("Error fetching properties:", error);
-  }
-
   const combinedData = {
     ...session.user,
     ...(userData || {}),
     fullName: userData?.fullName || session.user?.fullName || "User",
+    phone: session.user?.phone || userData?.phone || "",
   };
+
+  let properties = [];
+  try {
+    const propRes = await axios.get(`${BACKEND_URL}/api/company-properties`);
+    const allProperties = mapAPIData(propRes.data.data || []);
+    
+    // Filter properties where phone matches session user's phone
+    properties = allProperties.filter(
+      (property) => property.phone === combinedData.phone
+    );
+    
+  } catch (error) {
+    console.error("Error fetching properties:", error);
+  }
 
   return (
     <div className="w-full min-h-screen bg-[#fafafa] flex flex-col gap-y-5 ">

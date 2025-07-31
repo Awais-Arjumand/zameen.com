@@ -3,8 +3,14 @@ import { useRouter } from "next/navigation";
 import { useState } from "react";
 import axios from "axios";
 import { motion, AnimatePresence } from "framer-motion";
+import Select from "react-select";
 
-export default function DealerPropertyTable({ properties, onDelete }) {
+export default function DealerPropertyTable({
+  properties,
+  onDelete,
+  activeFilter,
+  companyName,
+}) {
   const router = useRouter();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
@@ -32,7 +38,30 @@ export default function DealerPropertyTable({ properties, onDelete }) {
     propertyDealerEmail: "",
     Area: "",
     areaUnit: "",
+    status: "public",
   });
+
+  const statusOptions = [
+    { value: "public", label: "Public" },
+    { value: "private", label: "Private" },
+    { value: "company-website", label: "Company Website" },
+  ];
+
+  const priceUnitOptions = [
+    { value: "PKR", label: "PKR" },
+    { value: "LAKH", label: "LAKH" },
+    { value: "CRORE", label: "CRORE" },
+  ];
+
+  const areaUnitOptions = [
+    { value: "SqFt", label: "SqFt" },
+    { value: "Marla", label: "Marla" },
+  ];
+
+  const buyOrRentOptions = [
+    { value: "Buy", label: "Buy" },
+    { value: "Rent", label: "Rent" },
+  ];
 
   const showDeleteConfirmation = (property) => {
     setPropertyToDelete(property);
@@ -45,7 +74,13 @@ export default function DealerPropertyTable({ properties, onDelete }) {
     const id = propertyToDelete._id;
     setDeletingId(id);
     try {
-      await axios.delete(`http://localhost:3000/api/user/${id}`);
+      const isCompanyProperty = propertyToDelete.status === "company-website";
+
+      const endpoint = isCompanyProperty
+        ? `http://localhost:3000/api/company-properties/${id}`
+        : `http://localhost:3000/api/user/${id}`;
+
+      await axios.delete(endpoint);
       router.refresh();
       if (onDelete) {
         onDelete();
@@ -101,6 +136,7 @@ export default function DealerPropertyTable({ properties, onDelete }) {
       propertyDealerEmail: property.propertyDealerEmail || "",
       Area: property.Area || "",
       areaUnit: property.areaUnit || "",
+      status: property.status || "public",
     });
     setIsModalOpen(true);
   };
@@ -118,12 +154,24 @@ export default function DealerPropertyTable({ properties, onDelete }) {
     });
   };
 
+  const handleSelectChange = (selectedOption, { name }) => {
+    setFormData({
+      ...formData,
+      [name]: selectedOption.value,
+    });
+  };
+
   const handleSaveChanges = async () => {
+    if (!selectedProperty) return;
+
     try {
-      await axios.patch(
-        `http://localhost:3000/api/user/${selectedProperty._id}`,
-        formData
-      );
+      const isCompanyProperty = formData.status === "company-website";
+
+      const endpoint = isCompanyProperty
+        ? `http://localhost:3000/api/company-properties/${selectedProperty._id}`
+        : `http://localhost:3000/api/user/${selectedProperty._id}`;
+
+      await axios.patch(endpoint, formData);
       router.refresh();
       handleCloseModal();
 
@@ -151,7 +199,7 @@ export default function DealerPropertyTable({ properties, onDelete }) {
   };
 
   return (
-    <motion.div 
+    <motion.div
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       transition={{ delay: 0.2 }}
@@ -172,7 +220,7 @@ export default function DealerPropertyTable({ properties, onDelete }) {
           </motion.div>
         )}
       </AnimatePresence>
-      
+
       {properties.length === 0 ? (
         <div className="w-full p-8 text-center">
           <motion.p
@@ -180,7 +228,11 @@ export default function DealerPropertyTable({ properties, onDelete }) {
             animate={{ opacity: 1 }}
             className="text-gray-500 text-lg"
           >
-            No Properties here
+            {activeFilter === "company"
+              ? "No Company Properties found"
+              : activeFilter === "private"
+              ? "No Private Properties found"
+              : "No Properties found"}
           </motion.p>
         </div>
       ) : (
@@ -188,7 +240,9 @@ export default function DealerPropertyTable({ properties, onDelete }) {
           <table className="min-w-full text-left text-sm">
             <thead className="bg-[#3B404C] text-white">
               <tr>
-                <th className="p-3 font-medium text-xs md:text-sm">Dealer Name</th>
+                <th className="p-3 font-medium text-xs md:text-sm">
+                  Dealer Name
+                </th>
                 <th className="p-3 font-medium text-xs md:text-sm">Purpose</th>
                 <th className="p-3 font-medium text-xs md:text-sm">City</th>
                 <th className="p-3 font-medium text-xs md:text-sm">Location</th>
@@ -198,12 +252,19 @@ export default function DealerPropertyTable({ properties, onDelete }) {
                   Time Requirement
                 </th>
                 <th className="p-3 font-medium text-xs md:text-sm">Bedrooms</th>
-                <th className="p-3 font-medium text-xs md:text-sm">Bathrooms</th>
+                <th className="p-3 font-medium text-xs md:text-sm">
+                  Bathrooms
+                </th>
                 <th className="p-3 font-medium text-xs md:text-sm whitespace-nowrap">
                   Area Size
                 </th>
-                <th className="p-3 font-medium text-xs md:text-sm">Min Price</th>
-                <th className="p-3 font-medium text-xs md:text-sm">Max Price</th>
+                <th className="p-3 font-medium text-xs md:text-sm">
+                  Min Price
+                </th>
+                <th className="p-3 font-medium text-xs md:text-sm">
+                  Max Price
+                </th>
+                <th className="p-3 font-medium text-xs md:text-sm">Status</th>
                 <th className="p-3 font-medium text-xs md:text-sm">Actions</th>
               </tr>
             </thead>
@@ -216,8 +277,8 @@ export default function DealerPropertyTable({ properties, onDelete }) {
                   transition={{ delay: index * 0.05 }}
                   className="border-b hover:bg-gray-50 transition-colors"
                 >
-                  <td className="px-3 py-2 text-xs md:text-sm">
-                    {property.senderName || "-"}
+                  <td className="px-3 py-2 text-xs md:text-sm whitespace-nowrap">
+                    {property.senderName || property.propertyDealerName || "-"}
                   </td>
                   <td className="px-3 py-2 text-xs md:text-sm">
                     {property.buyOrRent || "-"}
@@ -225,7 +286,7 @@ export default function DealerPropertyTable({ properties, onDelete }) {
                   <td className="px-3 py-2 text-xs md:text-sm">
                     {property.city || "-"}
                   </td>
-                  <td className="px-3 py-2 text-xs md:text-sm">
+                  <td className="px-3 py-2 text-xs md:text-sm whitespace-nowrap">
                     {property.location || "-"}
                   </td>
                   <td className="px-3 py-2 text-xs md:text-sm">
@@ -247,10 +308,23 @@ export default function DealerPropertyTable({ properties, onDelete }) {
                     {property.Area} {property.areaUnit}
                   </td>
                   <td className="px-3 py-2 text-xs md:text-sm">
-                    {property.minPrice || "-"}
+                    {property.minPrice || "-"} {property.priceUnit}
                   </td>
                   <td className="px-3 py-2 text-xs md:text-sm">
-                    {property.maxPrice || "-"}
+                    {property.maxPrice || "-"} {property.priceUnit}
+                  </td>
+                  <td className="px-3 py-2 text-xs md:text-sm">
+                    <span
+                      className={`px-3 py-1.5 rounded-full text-xs whitespace-nowrap ${
+                        property.status === "public"
+                          ? "font-semibold bg-green-100 !text-green-500"
+                          : property.status === "private"
+                          ? "font-semibold bg-blue-100 !text-blue-800"
+                          : "font-semibold bg-purple-100 !text-purple-800"
+                      }`}
+                    >
+                      {property.status || "Public"}
+                    </span>
                   </td>
                   <td className="px-3 py-2">
                     <div className="flex flex-col sm:flex-row gap-1 sm:gap-2">
@@ -293,7 +367,9 @@ export default function DealerPropertyTable({ properties, onDelete }) {
               exit={{ scale: 0.9, opacity: 0 }}
               className="bg-white rounded-lg shadow-lg p-4 md:p-6 w-full max-w-2xl max-h-[90vh] overflow-y-auto"
             >
-              <h2 className="text-lg md:text-xl font-bold mb-4">Edit Property</h2>
+              <h2 className="text-lg md:text-xl font-bold mb-4">
+                Edit Property
+              </h2>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="col-span-2">
                   <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -338,16 +414,17 @@ export default function DealerPropertyTable({ properties, onDelete }) {
                   <label className="block text-sm font-medium text-gray-700 mb-1">
                     Price Unit
                   </label>
-                  <select
+                  <Select
                     name="priceUnit"
-                    value={formData.priceUnit}
-                    onChange={handleInputChange}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm md:text-base"
-                  >
-                    <option value="PKR">PKR</option>
-                    <option value="LAKH">LAKH</option>
-                    <option value="CRORE">CRORE</option>
-                  </select>
+                    options={priceUnitOptions}
+                    value={priceUnitOptions.find(
+                      (option) => option.value === formData.priceUnit
+                    )}
+                    onChange={(selectedOption) =>
+                      handleSelectChange(selectedOption, { name: "priceUnit" })
+                    }
+                    className="text-sm md:text-base"
+                  />
                 </div>
 
                 <div>
@@ -419,15 +496,34 @@ export default function DealerPropertyTable({ properties, onDelete }) {
                   <label className="block text-sm font-medium text-gray-700 mb-1">
                     Buy/Rent
                   </label>
-                  <select
+                  <Select
                     name="buyOrRent"
-                    value={formData.buyOrRent}
-                    onChange={handleInputChange}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm md:text-base"
-                  >
-                    <option value="Buy">Buy</option>
-                    <option value="Rent">Rent</option>
-                  </select>
+                    options={buyOrRentOptions}
+                    value={buyOrRentOptions.find(
+                      (option) => option.value === formData.buyOrRent
+                    )}
+                    onChange={(selectedOption) =>
+                      handleSelectChange(selectedOption, { name: "buyOrRent" })
+                    }
+                    className="text-sm md:text-base"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Status
+                  </label>
+                  <Select
+                    name="status"
+                    options={statusOptions}
+                    value={statusOptions.find(
+                      (option) => option.value === formData.status
+                    )}
+                    onChange={(selectedOption) =>
+                      handleSelectChange(selectedOption, { name: "status" })
+                    }
+                    className="text-sm md:text-base"
+                  />
                 </div>
 
                 <div>
@@ -486,15 +582,17 @@ export default function DealerPropertyTable({ properties, onDelete }) {
                   <label className="block text-sm font-medium text-gray-700 mb-1">
                     Area Unit
                   </label>
-                  <select
+                  <Select
                     name="areaUnit"
-                    value={formData.areaUnit}
-                    onChange={handleInputChange}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm md:text-base"
-                  >
-                    <option value="SqFt">SqFt</option>
-                    <option value="Marla">Marla</option>
-                  </select>
+                    options={areaUnitOptions}
+                    value={areaUnitOptions.find(
+                      (option) => option.value === formData.areaUnit
+                    )}
+                    onChange={(selectedOption) =>
+                      handleSelectChange(selectedOption, { name: "areaUnit" })
+                    }
+                    className="text-sm md:text-base"
+                  />
                 </div>
               </div>
               <div className="mt-6 flex flex-col sm:flex-row justify-end gap-2">
@@ -538,10 +636,10 @@ export default function DealerPropertyTable({ properties, onDelete }) {
                 Confirm Deletion
               </h2>
               <p className="mb-4 md:mb-6 text-sm md:text-base">
-                Are you sure you want to delete this property? This action cannot
-                be undone.
+                Are you sure you want to delete this property? This action
+                cannot be undone.
               </p>
-              <p className="mb-4 font-semibold text-sm md:text-base">
+              <p className="mb-4 font-semibold text-sm md:text-base break-words whitespace-pre-wrap overflow-hidden">
                 "{propertyToDelete.description}" at {propertyToDelete.location}
               </p>
 
