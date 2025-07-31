@@ -192,13 +192,13 @@ const PropertySearchFilter = ({ onFilter }) => {
           <div className="flex gap-2">
             <button 
               onClick={handleSubmit}
-              className={`px-4 py-2 bg-[#3B404C] hover:bg-gray-600 transition-all cursor-pointer duration-300 text-white rounded-lg`}
+              className={`px-4 py-2 bg-primary hover:bg-gray-600 transition-all cursor-pointer duration-300 text-white rounded-lg`}
             >
               Search
             </button>
             <button
               onClick={clearFilters}
-              className="px-4 py-2 bg-[#3B404C] hover:hover:bg-gray-600 cursor-pointer transition-all duration-300 text-white rounded-lg"
+              className="px-4 py-2 bg-primary hover:hover:bg-gray-600 cursor-pointer transition-all duration-300 text-white rounded-lg"
             >
               Clear
             </button>

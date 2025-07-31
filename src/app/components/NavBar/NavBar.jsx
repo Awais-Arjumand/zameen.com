@@ -89,7 +89,7 @@ const NavBar = ({ userData: propUserData }) => {
         <Link href={"/"} className="text-2xl font-bold text-gray-500">
           <Image
             alt="Company Logo"
-            src={userData.logo}
+            src={"/images/Login/img2.svg"}
             width={150}
             height={150}
             className="w-32 md:w-40"

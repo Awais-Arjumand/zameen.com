@@ -46,7 +46,7 @@ const SignUp = () => {
       formData.append('fullName', fullName.trim());
       // Format company name
       const formattedCompany = companyName.trim()
-        .replace(/\s+/g, '_')
+        .replace(/\s+/g, '-')
         .toLowerCase();
       formData.append('companyName', formattedCompany);
       formData.append('logo', logoFile);
