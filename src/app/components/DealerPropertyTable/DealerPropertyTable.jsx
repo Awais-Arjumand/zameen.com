@@ -173,99 +173,111 @@ export default function DealerPropertyTable({ properties, onDelete }) {
         )}
       </AnimatePresence>
       
-      <div className="overflow-x-auto">
-        <table className="min-w-full text-left text-sm">
-          <thead className="bg-[#3B404C] text-white">
-            <tr>
-              <th className="p-3 font-medium text-xs md:text-sm">Dealer Name</th>
-              <th className="p-3 font-medium text-xs md:text-sm">Purpose</th>
-              <th className="p-3 font-medium text-xs md:text-sm">City</th>
-              <th className="p-3 font-medium text-xs md:text-sm">Location</th>
-              <th className="p-3 font-medium text-xs md:text-sm">Category</th>
-              <th className="p-3 font-medium text-xs md:text-sm">Portion</th>
-              <th className="p-3 font-medium text-xs md:text-sm whitespace-nowrap">
-                Time Requirement
-              </th>
-              <th className="p-3 font-medium text-xs md:text-sm">Bedrooms</th>
-              <th className="p-3 font-medium text-xs md:text-sm">Bathrooms</th>
-              <th className="p-3 font-medium text-xs md:text-sm whitespace-nowrap">
-                Area Size
-              </th>
-              <th className="p-3 font-medium text-xs md:text-sm">Min Price</th>
-              <th className="p-3 font-medium text-xs md:text-sm">Max Price</th>
-              <th className="p-3 font-medium text-xs md:text-sm">Actions</th>
-            </tr>
-          </thead>
-          <tbody>
-            {properties.map((property, index) => (
-              <motion.tr
-                key={property._id}
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: index * 0.05 }}
-                className="border-b hover:bg-gray-50 transition-colors"
-              >
-                <td className="px-3 py-2 text-xs md:text-sm">
-                  {property.senderName || "-"}
-                </td>
-                <td className="px-3 py-2 text-xs md:text-sm">
-                  {property.buyOrRent || "-"}
-                </td>
-                <td className="px-3 py-2 text-xs md:text-sm">
-                  {property.city || "-"}
-                </td>
-                <td className="px-3 py-2 text-xs md:text-sm">
-                  {property.location || "-"}
-                </td>
-                <td className="px-3 py-2 text-xs md:text-sm">
-                  {property.category || "-"}
-                </td>
-                <td className="px-3 py-2 text-xs md:text-sm ">
-                  {property.portionCategory || "-"}
-                </td>
-                <td className="px-3 py-2 text-xs md:text-sm">
-                  {property.timeRequirement || "-"}
-                </td>
-                <td className="px-3 py-2 text-xs md:text-sm">
-                  {property.beds || "-"} Beds
-                </td>
-                <td className="px-3 py-2 text-xs md:text-sm">
-                  {property.Bath || "-"} Baths
-                </td>
-                <td className="px-3 py-2 text-xs md:text-sm">
-                  {property.Area} {property.areaUnit}
-                </td>
-                <td className="px-3 py-2 text-xs md:text-sm">
-                  {property.minPrice || "-"}
-                </td>
-                <td className="px-3 py-2 text-xs md:text-sm">
-                  {property.maxPrice || "-"}
-                </td>
-                <td className="px-3 py-2">
-                  <div className="flex flex-col sm:flex-row gap-1 sm:gap-2">
-                    <motion.button
-                      whileHover={{ scale: 1.05 }}
-                      whileTap={{ scale: 0.95 }}
-                      onClick={() => handleEdit(property)}
-                      className="px-2 py-1 bg-blue-500 cursor-pointer text-white rounded text-xs hover:bg-blue-600"
-                    >
-                      Edit
-                    </motion.button>
-                    <motion.button
-                      whileHover={{ scale: 1.05 }}
-                      whileTap={{ scale: 0.95 }}
-                      onClick={() => showDeleteConfirmation(property)}
-                      className="px-2 py-1 bg-red-500 cursor-pointer text-white rounded text-xs hover:bg-red-600"
-                    >
-                      Delete
-                    </motion.button>
-                  </div>
-                </td>
-              </motion.tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
+      {properties.length === 0 ? (
+        <div className="w-full p-8 text-center">
+          <motion.p
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            className="text-gray-500 text-lg"
+          >
+            No Properties here
+          </motion.p>
+        </div>
+      ) : (
+        <div className="overflow-x-auto">
+          <table className="min-w-full text-left text-sm">
+            <thead className="bg-[#3B404C] text-white">
+              <tr>
+                <th className="p-3 font-medium text-xs md:text-sm">Dealer Name</th>
+                <th className="p-3 font-medium text-xs md:text-sm">Purpose</th>
+                <th className="p-3 font-medium text-xs md:text-sm">City</th>
+                <th className="p-3 font-medium text-xs md:text-sm">Location</th>
+                <th className="p-3 font-medium text-xs md:text-sm">Category</th>
+                <th className="p-3 font-medium text-xs md:text-sm">Portion</th>
+                <th className="p-3 font-medium text-xs md:text-sm whitespace-nowrap">
+                  Time Requirement
+                </th>
+                <th className="p-3 font-medium text-xs md:text-sm">Bedrooms</th>
+                <th className="p-3 font-medium text-xs md:text-sm">Bathrooms</th>
+                <th className="p-3 font-medium text-xs md:text-sm whitespace-nowrap">
+                  Area Size
+                </th>
+                <th className="p-3 font-medium text-xs md:text-sm">Min Price</th>
+                <th className="p-3 font-medium text-xs md:text-sm">Max Price</th>
+                <th className="p-3 font-medium text-xs md:text-sm">Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              {properties.map((property, index) => (
+                <motion.tr
+                  key={property._id}
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: index * 0.05 }}
+                  className="border-b hover:bg-gray-50 transition-colors"
+                >
+                  <td className="px-3 py-2 text-xs md:text-sm">
+                    {property.senderName || "-"}
+                  </td>
+                  <td className="px-3 py-2 text-xs md:text-sm">
+                    {property.buyOrRent || "-"}
+                  </td>
+                  <td className="px-3 py-2 text-xs md:text-sm">
+                    {property.city || "-"}
+                  </td>
+                  <td className="px-3 py-2 text-xs md:text-sm">
+                    {property.location || "-"}
+                  </td>
+                  <td className="px-3 py-2 text-xs md:text-sm">
+                    {property.category || "-"}
+                  </td>
+                  <td className="px-3 py-2 text-xs md:text-sm ">
+                    {property.portionCategory || "-"}
+                  </td>
+                  <td className="px-3 py-2 text-xs md:text-sm">
+                    {property.timeRequirement || "-"}
+                  </td>
+                  <td className="px-3 py-2 text-xs md:text-sm">
+                    {property.beds || "-"} Beds
+                  </td>
+                  <td className="px-3 py-2 text-xs md:text-sm">
+                    {property.Bath || "-"} Baths
+                  </td>
+                  <td className="px-3 py-2 text-xs md:text-sm">
+                    {property.Area} {property.areaUnit}
+                  </td>
+                  <td className="px-3 py-2 text-xs md:text-sm">
+                    {property.minPrice || "-"}
+                  </td>
+                  <td className="px-3 py-2 text-xs md:text-sm">
+                    {property.maxPrice || "-"}
+                  </td>
+                  <td className="px-3 py-2">
+                    <div className="flex flex-col sm:flex-row gap-1 sm:gap-2">
+                      <motion.button
+                        whileHover={{ scale: 1.05 }}
+                        whileTap={{ scale: 0.95 }}
+                        onClick={() => handleEdit(property)}
+                        className="px-2 py-1 bg-blue-500 cursor-pointer text-white rounded text-xs hover:bg-blue-600"
+                      >
+                        Edit
+                      </motion.button>
+                      <motion.button
+                        whileHover={{ scale: 1.05 }}
+                        whileTap={{ scale: 0.95 }}
+                        onClick={() => showDeleteConfirmation(property)}
+                        className="px-2 py-1 bg-red-500 cursor-pointer text-white rounded text-xs hover:bg-red-600"
+                      >
+                        Delete
+                      </motion.button>
+                    </div>
+                  </td>
+                </motion.tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
 
       <AnimatePresence>
         {isModalOpen && (

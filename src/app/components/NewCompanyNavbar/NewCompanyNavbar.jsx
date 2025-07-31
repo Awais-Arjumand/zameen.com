@@ -30,24 +30,28 @@ const NewCompanyNavbar = () => {
 
   const normalizeLogoPath = (logoPath) => {
     if (!logoPath) return "/images/Login/img2.svg";
-    
-    let normalized = logoPath.replace(/\\/g, '/').replace(/\/+/g, '/');
-    
-    if (!normalized.startsWith('/uploads/') && !normalized.startsWith('http')) {
+
+    let normalized = logoPath.replace(/\\/g, "/").replace(/\/+/g, "/");
+
+    if (!normalized.startsWith("/uploads/") && !normalized.startsWith("http")) {
       normalized = `/uploads/${normalized}`;
     }
-    
+
     return normalized;
   };
 
-  const logoUrl = userData?.logo ? normalizeLogoPath(userData.logo) : "/images/Login/img2.svg";
+  const logoUrl = userData?.logo
+    ? normalizeLogoPath(userData.logo)
+    : "/images/Login/img2.svg";
 
   useEffect(() => {
     const fetchData = async () => {
       try {
         if (session?.user?.phone) {
           const res = await axios.get(
-            `http://localhost:3000/api/users/${encodeURIComponent(session.user.phone)}`
+            `http://localhost:3000/api/users/${encodeURIComponent(
+              session.user.phone
+            )}`
           );
           const data = res.data.data;
           setUserData(data);
@@ -84,17 +88,19 @@ const NewCompanyNavbar = () => {
 
     try {
       const formData = new FormData();
-      
+
       // Replace all spaces with hyphens in company name
-      const formattedCompanyName = companyName.replace(/\s+/g, '-');
-      
+      const formattedCompanyName = companyName.replace(/\s+/g, "-");
+
       formData.append("fullName", fullName);
       formData.append("companyName", formattedCompanyName);
       formData.append("phone", phone);
       formData.append("logoColor", logoColor);
 
       const response = await axios.patch(
-        `http://localhost:3000/api/users/${encodeURIComponent(session.user.phone)}`,
+        `http://localhost:3000/api/users/${encodeURIComponent(
+          session.user.phone
+        )}`,
         formData,
         {
           headers: {
@@ -105,7 +111,9 @@ const NewCompanyNavbar = () => {
 
       if (response.data.success) {
         const res = await axios.get(
-          `http://localhost:3000/api/users/${encodeURIComponent(session.user.phone)}`
+          `http://localhost:3000/api/users/${encodeURIComponent(
+            session.user.phone
+          )}`
         );
         setUserData(res.data.data);
         toast.success("Settings saved successfully!");
@@ -116,7 +124,11 @@ const NewCompanyNavbar = () => {
       }
     } catch (error) {
       console.error("Error saving settings:", error);
-      toast.error(error.response?.data?.message || error.message || "Failed to save settings");
+      toast.error(
+        error.response?.data?.message ||
+          error.message ||
+          "Failed to save settings"
+      );
     } finally {
       setIsSaving(false);
     }
@@ -148,7 +160,7 @@ const NewCompanyNavbar = () => {
               height={150}
               className="w-32 md:w-40"
               priority
-              unoptimized={logoUrl.startsWith('blob:')}
+              unoptimized={logoUrl.startsWith("blob:")}
               onError={(e) => {
                 e.currentTarget.src = "/images/Login/img2.svg";
               }}
@@ -158,7 +170,11 @@ const NewCompanyNavbar = () => {
           <div className="w-fit h-fit flex gap-x-3 items-center">
             <Link
               className="flex rounded bg-primary px-4 py-1.5 justify-center items-center w-fit h-fit text-xs font-normal text-white transition-all duration-300 hover:opacity-90"
-              href={isAuthenticated ? "/dealer-panel" : "/auth/signin"}
+              href={
+                isAuthenticated
+                  ? `/${companyName}/dealer-panel`
+                  : "/auth/signin"
+              }
             >
               My Property
             </Link>
