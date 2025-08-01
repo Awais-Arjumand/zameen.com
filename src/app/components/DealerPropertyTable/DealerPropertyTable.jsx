@@ -1,7 +1,6 @@
 "use client";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
-import axios from "axios";
 import { motion, AnimatePresence } from "framer-motion";
 import Select from "react-select";
 import apiClient from "../../../../src/service/apiClient";
@@ -87,7 +86,8 @@ export default function DealerPropertyTable({
         endpoint = `/user/${id}`;
       }
 
-      await axios.delete(endpoint);
+      // await axios.delete(endpoint);
+      await apiClient.delete(endpoint);
       router.refresh();
       if (onDelete) {
         onDelete();
@@ -192,7 +192,8 @@ export default function DealerPropertyTable({
         Bath: formData.Bath ? parseInt(formData.Bath) : 0,
       };
 
-      await axios.patch(endpoint, payload);
+      // await axios.patch(endpoint, payload);
+      await apiClient.patch(endpoint, payload);
       router.refresh();
       handleCloseModal();
 
