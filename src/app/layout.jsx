@@ -2,6 +2,7 @@ import { Josefin_Sans } from "next/font/google";
 import "./globals.css";
 import ClientLayout from "./components/ClientLayout";
 import CustomSessionProvider from "./components/Providers/SessionProvider";
+import { Suspense } from "react";
 
 const JosefinSans = Josefin_Sans({
   variable: "--font-josefin-sans",
@@ -21,7 +22,9 @@ export default function RootLayout({ children }) {
         cz-shortcut-listen="true"
       >
         <CustomSessionProvider>
-          <ClientLayout>{children}</ClientLayout>
+          <ClientLayout>
+            <Suspense fallback={<di>error</di>}>{children}</Suspense>
+          </ClientLayout>
         </CustomSessionProvider>
       </body>
     </html>

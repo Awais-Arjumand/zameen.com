@@ -1,9 +1,11 @@
+// src/app/api/auth/[...nextauth]/route.ts
 import NextAuth from "next-auth";
 import { MongoDBAdapter } from "@next-auth/mongodb-adapter";
 import CredentialsProvider from "next-auth/providers/credentials";
 import clientPromise from "../../../../lib/mongodb";
+import { NextApiRequest, NextApiResponse } from "next";
 
-const handler = NextAuth({
+export const authOptions = {
   adapter: MongoDBAdapter(clientPromise),
   providers: [
     CredentialsProvider({
@@ -12,7 +14,11 @@ const handler = NextAuth({
         phone: { label: "Phone Number", type: "text" },
         code: { label: "Verification Code", type: "text" },
       },
-      async authorize(credentials, req) {
+      async authorize(credentials) {
+        if (!credentials?.phone || !credentials?.code) {
+          return null;
+        }
+
         const client = await clientPromise;
         const db = client.db();
 
@@ -26,13 +32,13 @@ const handler = NextAuth({
             .updateOne({ _id: user._id }, { $unset: { verificationCode: "" } });
 
           return { 
-            id: user._id, 
+            id: user._id.toString(), 
             phone: user.phone,
-            name: user.fullName,  // Include full name
-            fullName: user.fullName, // Duplicate for consistency
-            companyName: user.companyName, // Include company name
-            logo: user.logo, // Include logo path
-            logoColor: user.logoColor // Include logo color
+            name: user.fullName,
+            fullName: user.fullName,
+            companyName: user.companyName,
+            logo: user.logo,
+            logoColor: user.logoColor
           };
         }
 
@@ -48,7 +54,6 @@ const handler = NextAuth({
   },
   callbacks: {
     async jwt({ token, user }) {
-      // Persist user data to the token right after sign in
       if (user) {
         token.id = user.id;
         token.phone = user.phone;
@@ -60,18 +65,19 @@ const handler = NextAuth({
       return token;
     },
     async session({ session, token }) {
-      // Send properties to the client
       if (token) {
         session.user.id = token.id;
         session.user.phone = token.phone;
         session.user.fullName = token.fullName;
         session.user.companyName = token.companyName;
-        session.user.logo = token.logo;
+        session.user.logo = token.logo ;
         session.user.logoColor = token.logoColor;
       }
       return session;
     },
   },
-});
+};
+
+const handler = NextAuth(authOptions);
 
 export { handler as GET, handler as POST };
