@@ -11,11 +11,28 @@ import PropertyImagesandVideos from "../../../components/AddNewItem/PropertyImag
 import ContactInformation from "../../../components/AddNewItem/ContactInformation/ContactInformation";
 import Link from "next/link";
 import { IoChevronBackSharp } from "react-icons/io5";
-import Select from 'react-select';
+import { motion, AnimatePresence } from "framer-motion";
+import NewCompanyNavbar from "../../../components/NewCompanyNavbar/NewCompanyNavbar";
+
+const formatPhoneForSubmission = (phone, countryCode = "PK") => {
+  if (!phone) return "";
+  if (countryCode !== "PK") return phone;
+
+  const cleaned = phone.replace(/\D/g, "");
+  if (cleaned.startsWith("0")) {
+    return `+92${cleaned.substring(1)}`;
+  } else if (cleaned.startsWith("92")) {
+    return `+${cleaned}`;
+  } else if (cleaned.startsWith("3")) {
+    return `+92${cleaned}`;
+  }
+  return cleaned.startsWith("+") ? cleaned : `+${cleaned}`;
+};
 
 const Page = () => {
   const { data: session } = useSession();
-  const companyName = session?.user?.companyName?.replace(/\s+/g, "-") || "default-company";
+  const companyName =
+    session?.user?.companyName?.replace(/\s+/g, "-") || "default-company";
 
   const router = useRouter();
   const locationAndCityRef = useRef(null);
@@ -26,15 +43,11 @@ const Page = () => {
   const contactInformationRef = useRef(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [companyType, setCompanyType] = useState(null);
+  const [showForm, setShowForm] = useState(false);
 
-  const companyTypeOptions = [
-    { value: 'public', label: 'Public' },
-    { value: 'company website', label: 'Company Website' },
-    { value: 'private', label: 'Private' }
-  ];
-
-  const handleCompanyTypeChange = (selectedOption) => {
-    setCompanyType(selectedOption);
+  const handleCompanyTypeChange = (type) => {
+    setCompanyType(type);
+    setShowForm(true);
   };
 
   const handleSubmit = async () => {
@@ -55,7 +68,7 @@ const Page = () => {
       if (!areaPriceData.area) errors.push("Area is required");
       if (!areaPriceData.minPrice) errors.push("Minimum price is required");
       if (!areaPriceData.maxPrice) errors.push("Maximum price is required");
-      if (!companyType) errors.push("Company type is required");
+      if (!companyType) errors.push("Property type is required");
 
       if (!contactData.name) {
         errors.push("Dealer full name is required");
@@ -83,10 +96,13 @@ const Page = () => {
         buyOrRent: adInfoData.buyOrRent,
         description: adInfoData.description || "",
         propertyDealerEmail: contactData.email,
-        Phone: contactData.phone,
+        phone: formatPhoneForSubmission(
+          contactData.phone,
+          contactData.landlineCountry
+        ),
         propertyDealerName: contactData.name,
-        senderName:session?.user?.name,
-        companyType: companyType.value
+        senderName: session?.user?.name,
+        status: companyType.value,
       };
 
       console.log("✅ Final Form Data:", formData);
@@ -103,16 +119,21 @@ const Page = () => {
         apiFormData.append("video", mediaData.video);
       }
 
-      // Determine the API endpoint based on company type
-      const apiEndpoint = companyType.value === 'company website' 
-        ? "http://localhost:3000/api/company-properties"
-        : "http://localhost:3000/api/user";
+      let apiEndpoint;
+      switch (companyType.value) {
+        case "company-website":
+          apiEndpoint = "http://localhost:3000/api/company-properties";
+          break;
+        case "private":
+          apiEndpoint = "http://localhost:3000/api/private-properties";
+          break;
+        default:
+          apiEndpoint = "http://localhost:3000/api/user";
+      }
 
-      const response = await axios.post(
-        apiEndpoint,
-        apiFormData,
-        { headers: { "Content-Type": "multipart/form-data" } }
-      );
+      const response = await axios.post(apiEndpoint, apiFormData, {
+        headers: { "Content-Type": "multipart/form-data" },
+      });
 
       if (response.status === 201) {
         alert("✅ Property submitted successfully!");
@@ -128,9 +149,27 @@ const Page = () => {
     }
   };
 
+  const containerVariants = {
+    hidden: { opacity: 0, y: 20 },
+    visible: {
+      opacity: 1,
+      y: 0,
+      transition: {
+        staggerChildren: 0.1,
+        when: "beforeChildren",
+      },
+    },
+  };
+
+  const itemVariants = {
+    hidden: { opacity: 0, y: 20 },
+    visible: { opacity: 1, y: 0 },
+  };
+
   return (
-    <div className="w-full h-fit flex flex-col roboto gap-y-8 px-20 py-10 mt-16 bg-[#f6f7fb]">
-      <div className="w-full flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
+    <>
+      <NewCompanyNavbar />
+      <div className="w-full h-fit flex flex-col roboto gap-y-8 px-4 md:px-20 py-10 mt-16 bg-[#f6f7fb]">
         <Link
           href={`/${companyName}/dealer-panel`}
           className="flex items-center gap-x-2 text-primary hover:text-primary-dark transition-colors"
@@ -138,42 +177,118 @@ const Page = () => {
           <IoChevronBackSharp className="text-lg" />
           <span className="text-base font-medium">Back to Dealer Panel</span>
         </Link>
-        
-        <div className="w-full sm:w-64">
-          <Select
-            options={companyTypeOptions}
-            value={companyType}
-            onChange={handleCompanyTypeChange}
-            placeholder="Select company type..."
-            className="basic-single"
-            classNamePrefix="select"
-            isSearchable={false}
-            required
-          />
+        <div className="w-full h-fit flex flex-col justify-center items-center gap-y-3">
+          <h2 className="text-xl font-semibold text-gray-800">
+            🏷️ Select Listing Type
+          </h2>
+          <motion.div
+            className="flex flex-wrap gap-4"
+            initial="hidden"
+            animate="visible"
+            variants={containerVariants}
+          >
+            <motion.button
+              onClick={() =>
+                handleCompanyTypeChange({ value: "public", label: "Public" })
+              }
+              className={`px-4 py-2 rounded-lg border transition-all duration-300 cursor-pointer ${
+                companyType?.value === "public"
+                  ? "bg-primary text-white border-primary"
+                  : "bg-white text-gray-700 border-gray-300 hover:border-primary"
+              }`}
+              variants={itemVariants}
+            >
+              Public
+            </motion.button>
+
+            <motion.button
+              onClick={() =>
+                handleCompanyTypeChange({
+                  value: "company-website",
+                  label: "Company Website",
+                })
+              }
+              className={`px-4 py-2 rounded-lg border transition-all duration-300 cursor-pointer ${
+                companyType?.value === "company-website"
+                  ? "bg-primary text-white border-primary"
+                  : "bg-white text-gray-700 border-gray-300 hover:border-primary"
+              }`}
+              variants={itemVariants}
+            >
+              Company-Website
+            </motion.button>
+            <motion.button
+              onClick={() =>
+                handleCompanyTypeChange({ value: "private", label: "Private" })
+              }
+              className={`px-4 py-2 rounded-lg border transition-all duration-300 cursor-pointer ${
+                companyType?.value === "private"
+                  ? "bg-primary text-white border-primary"
+                  : "bg-white text-gray-700 border-gray-300 hover:border-primary"
+              }`}
+              variants={itemVariants}
+            >
+              Private
+            </motion.button>
+          </motion.div>
         </div>
-      </div>
 
-      <div className={`${!companyType ? 'opacity-50 pointer-events-none' : ''}`}>
-        <LocationAndCity ref={locationAndCityRef} disabled={!companyType} />
-        <AreaAndPrice ref={areaAndPriceRef} disabled={!companyType} />
-        <FeatureandAmenities ref={featureAndAmenitiesRef} disabled={!companyType} />
-        <AdInformation ref={adInformationRef} disabled={!companyType} />
-        <PropertyImagesandVideos ref={propertyImagesAndVideosRef} disabled={!companyType} />
-        <ContactInformation ref={contactInformationRef} disabled={!companyType} />
-      </div>
+        <AnimatePresence>
+          {showForm && (
+            <motion.div
+              initial={{ opacity: 0, height: 0 }}
+              animate={{ opacity: 1, height: "auto" }}
+              exit={{ opacity: 0, height: 0 }}
+              transition={{ duration: 0.5 }}
+              className="overflow-hidden"
+            >
+              <motion.div
+                variants={containerVariants}
+                initial="hidden"
+                animate="visible"
+                className="space-y-8"
+              >
+                <motion.div variants={itemVariants}>
+                  <LocationAndCity ref={locationAndCityRef} />
+                </motion.div>
+                <motion.div variants={itemVariants}>
+                  <AreaAndPrice ref={areaAndPriceRef} />
+                </motion.div>
+                <motion.div variants={itemVariants}>
+                  <FeatureandAmenities ref={featureAndAmenitiesRef} />
+                </motion.div>
+                <motion.div variants={itemVariants}>
+                  <AdInformation ref={adInformationRef} />
+                </motion.div>
+                <motion.div variants={itemVariants}>
+                  <PropertyImagesandVideos ref={propertyImagesAndVideosRef} />
+                </motion.div>
+                <motion.div variants={itemVariants}>
+                  <ContactInformation ref={contactInformationRef} />
+                </motion.div>
+              </motion.div>
 
-      <div className="w-full flex justify-end">
-        <button
-          onClick={handleSubmit}
-          disabled={isSubmitting || !companyType}
-          className={`px-5 py-2 text-base font-medium transition-all duration-300 text-white flex justify-center items-center rounded-lg ${
-            isSubmitting || !companyType ? "bg-gray-500 cursor-not-allowed" : "bg-primary hover:bg-primary-dark cursor-pointer"
-          }`}
-        >
-          {isSubmitting ? "Submitting..." : "Submit"}
-        </button>
+              <motion.div
+                className="w-full flex justify-end mt-8"
+                variants={itemVariants}
+              >
+                <button
+                  onClick={handleSubmit}
+                  disabled={isSubmitting}
+                  className={`px-5 py-2 text-base font-medium transition-all duration-300 text-white flex justify-center items-center rounded-lg ${
+                    isSubmitting
+                      ? "bg-gray-500 cursor-not-allowed"
+                      : "bg-primary hover:bg-primary-dark cursor-pointer"
+                  }`}
+                >
+                  {isSubmitting ? "Submitting..." : "Submit"}
+                </button>
+              </motion.div>
+            </motion.div>
+          )}
+        </AnimatePresence>
       </div>
-    </div>
+    </>
   );
 };
 

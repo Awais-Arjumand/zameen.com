@@ -74,11 +74,14 @@ export default function DealerPropertyTable({
     const id = propertyToDelete._id;
     setDeletingId(id);
     try {
-      const isCompanyProperty = propertyToDelete.status === "company-website";
-
-      const endpoint = isCompanyProperty
-        ? `http://localhost:3000/api/company-properties/${id}`
-        : `http://localhost:3000/api/user/${id}`;
+      let endpoint;
+      if (propertyToDelete.status === "company-website") {
+        endpoint = `http://localhost:3000/api/company-properties/${id}`;
+      } else if (propertyToDelete.status === "private") {
+        endpoint = `http://localhost:3000/api/private-properties/${id}`;
+      } else {
+        endpoint = `http://localhost:3000/api/user/${id}`;
+      }
 
       await axios.delete(endpoint);
       router.refresh();
@@ -122,17 +125,17 @@ export default function DealerPropertyTable({
     setSelectedProperty(property);
     setFormData({
       description: property.description || "",
-      minPrice: property.minPrice || property.price || "",
-      maxPrice: property.maxPrice || property.price || "",
+      minPrice: property.minPrice || "",
+      maxPrice: property.maxPrice || "",
       priceUnit: property.priceUnit || "PKR",
       location: property.location || "",
       category: property.category || "",
       city: property.city || "",
-      beds: property.beds || "",
-      Bath: property.Bath || "",
+      beds: property.beds !== undefined ? property.beds.toString() : "",
+      Bath: property.Bath !== undefined ? property.Bath.toString() : "",
       buyOrRent: property.buyOrRent || "",
       senderName: property.senderName || "",
-      propertyDealerName: property.propertyDealerName || "",
+      propertyDealerName: property.propertyDealerName || companyName || "",
       propertyDealerEmail: property.propertyDealerEmail || "",
       Area: property.Area || "",
       areaUnit: property.areaUnit || "",
@@ -165,13 +168,24 @@ export default function DealerPropertyTable({
     if (!selectedProperty) return;
 
     try {
-      const isCompanyProperty = formData.status === "company-website";
+      let endpoint;
+      if (selectedProperty.status === "company-website" || formData.status === "company-website") {
+        endpoint = `http://localhost:3000/api/company-properties/${selectedProperty._id}`;
+        formData.propertyDealerName = companyName;
+      } else if (selectedProperty.status === "private" || formData.status === "private") {
+        endpoint = `http://localhost:3000/api/private-properties/${selectedProperty._id}`;
+      } else {
+        endpoint = `http://localhost:3000/api/user/${selectedProperty._id}`;
+      }
 
-      const endpoint = isCompanyProperty
-        ? `http://localhost:3000/api/company-properties/${selectedProperty._id}`
-        : `http://localhost:3000/api/user/${selectedProperty._id}`;
+      // Prepare the payload with proper numeric values
+      const payload = {
+        ...formData,
+        beds: formData.beds ? parseInt(formData.beds) : 0,
+        Bath: formData.Bath ? parseInt(formData.Bath) : 0,
+      };
 
-      await axios.patch(endpoint, formData);
+      await axios.patch(endpoint, payload);
       router.refresh();
       handleCloseModal();
 
@@ -475,6 +489,7 @@ export default function DealerPropertyTable({
                     name="beds"
                     value={formData.beds}
                     onChange={handleInputChange}
+                    min="0"
                     className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm md:text-base"
                   />
                 </div>
@@ -488,6 +503,7 @@ export default function DealerPropertyTable({
                     name="Bath"
                     value={formData.Bath}
                     onChange={handleInputChange}
+                    min="0"
                     className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm md:text-base"
                   />
                 </div>
@@ -548,7 +564,10 @@ export default function DealerPropertyTable({
                     name="propertyDealerName"
                     value={formData.propertyDealerName}
                     onChange={handleInputChange}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm md:text-base"
+                    className={`w-full px-3 py-2 border border-gray-300 rounded-md text-sm md:text-base ${
+                      formData.status === "company-website" ? "bg-gray-100 cursor-not-allowed" : ""
+                    }`}
+                    readOnly={formData.status === "company-website"}
                   />
                 </div>
 

@@ -6,13 +6,34 @@ import { IoCallOutline, IoMailOutline, IoPersonOutline } from "react-icons/io5";
 import { IoMdAdd } from "react-icons/io";
 import { FaMinus } from "react-icons/fa6";
 
-// Get flag emoji from country code
 const getFlagEmoji = (countryCode) =>
   countryCode
     .toUpperCase()
     .replace(/./g, (char) =>
       String.fromCodePoint(127397 + char.charCodeAt())
     );
+
+const formatPakistaniNumber = (number) => {
+  if (!number) return "";
+  
+  // Remove all non-digit characters
+  const cleaned = number.replace(/\D/g, '');
+  
+  // If number starts with 0, replace with +92
+  if (cleaned.startsWith('0')) {
+    return `+92${cleaned.substring(1)}`;
+  }
+  // If number starts with 92, add + prefix
+  else if (cleaned.startsWith('92')) {
+    return `+${cleaned}`;
+  }
+  // If number starts with 3 (without country code), add +92
+  else if (cleaned.startsWith('3')) {
+    return `+92${cleaned}`;
+  }
+  // Otherwise return as is (with + if present)
+  return cleaned.startsWith('+') ? cleaned : `+${cleaned}`;
+};
 
 const ContactInformation = forwardRef((props, ref) => {
   const [countries, setCountries] = useState([]);
@@ -24,8 +45,8 @@ const ContactInformation = forwardRef((props, ref) => {
     { id: 1, value: "", error: false }
   ]);
   const [email, setEmail] = useState("");
-  const [name, setName] = useState(""); // New state for dealer name
-  const [nameError, setNameError] = useState(false); // Validation error for name
+  const [name, setName] = useState("");
+  const [nameError, setNameError] = useState(false);
 
   useEffect(() => {
     axios
@@ -85,22 +106,33 @@ const ContactInformation = forwardRef((props, ref) => {
   const handleNameChange = (e) => {
     const value = e.target.value;
     setName(value);
-    // Validate name has at least 2 words
     setNameError(value.trim().split(/\s+/).length < 2);
   };
 
   const validatePhone = (number) => {
+    if (!number) return false;
+    if (mobileCountry?.code === "PK") {
+      const cleaned = number.replace(/\D/g, '');
+      return cleaned.length >= 10 && (cleaned.startsWith('3') || cleaned.startsWith('03'));
+    }
     return /^\d{7,}$/.test(number);
   };
 
   useImperativeHandle(ref, () => ({
-    getData: () => ({
-      email,
-      name,
-      mobileNumbers,
-      landlineNumber,
-      landlineCountry: landlineCountry?.code,
-    }),
+    getData: () => {
+      const primaryPhone = mobileNumbers[0]?.value || "";
+      return {
+        email,
+        name,
+        phone: mobileCountry?.code === "PK" ? formatPakistaniNumber(primaryPhone) : primaryPhone,
+        mobileNumbers: mobileNumbers.map(num => ({
+          ...num,
+          value: mobileCountry?.code === "PK" ? formatPakistaniNumber(num.value) : num.value
+        })),
+        landlineNumber: landlineCountry?.code === "PK" ? formatPakistaniNumber(landlineNumber) : landlineNumber,
+        landlineCountry: landlineCountry?.code,
+      };
+    },
     setData: (data) => {
       setEmail(data.email || "");
       setName(data.name || "");
@@ -112,7 +144,7 @@ const ContactInformation = forwardRef((props, ref) => {
               value: num.value || "",
               error: false,
             }))
-          : [{ id: 1, value: "", error: false }]
+          : [{ id: 1, value: data.phone || "", error: false }]
       );
     },
   }));
@@ -127,7 +159,6 @@ const ContactInformation = forwardRef((props, ref) => {
           <h2 className="text-2xl font-semibold text-gray-800">Contact Information</h2>
         </div>
 
-        {/* Dealer Full Name */}
         <div className="flex items-center mb-6">
           <div className="w-40 flex items-center gap-x-2">
             <div className="p-2 rounded-lg">
@@ -151,7 +182,6 @@ const ContactInformation = forwardRef((props, ref) => {
           </div>
         </div>
 
-        {/* Email */}
         <div className="flex items-center mb-6 ">
           <div className="w-40 flex items-center gap-x-2">
             <div className="p-2 rounded-lg">
@@ -171,7 +201,6 @@ const ContactInformation = forwardRef((props, ref) => {
         </div>
 
         <div className="w-full h-fit grid grid-cols-2 gap-x-3">
-          {/* Mobile Numbers */}
           <div className="mb-6">
             <div className="flex items-center gap-x-3 mb-2">
               <IoCallOutline className="text-xl text-gray-500" />
@@ -215,11 +244,9 @@ const ContactInformation = forwardRef((props, ref) => {
             ))}
           </div>
 
-          {/* Landline */}
           <div className="mb-2">
             <div className="flex items-center gap-x-3 mb-2">
                 <IoCallOutline className="text-xl text-gray-500" />
-             
               <span className="text-gray-600 font-medium">Landline</span>
             </div>
 
@@ -245,7 +272,7 @@ const ContactInformation = forwardRef((props, ref) => {
             <svg className="w-4 h-4 mr-1 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
               <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
             </svg>
-            Please enter a valid phone
+            Please enter a valid phone number
           </div>
         )}
       </div>

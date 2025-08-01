@@ -13,6 +13,7 @@ export default function DealerPanel() {
   const { data: session, status } = useSession();
   const [userProperties, setUserProperties] = useState([]);
   const [companyProperties, setCompanyProperties] = useState([]);
+  const [privateProperties, setPrivateProperties] = useState([]);
   const [filteredProperties, setFilteredProperties] = useState([]);
   const [error, setError] = useState(null);
   const [userData, setUserData] = useState({
@@ -62,16 +63,25 @@ export default function DealerPanel() {
         ...companyProperties.filter(
           (cp) => !userProperties.some((up) => up._id === cp._id)
         ),
+        ...privateProperties.filter(
+          (pp) =>
+            !userProperties.some((up) => up._id === pp._id) &&
+            !companyProperties.some((cp) => cp._id === pp._id)
+        ),
       ];
     } else if (activeFilter === "company") {
       return companyProperties;
     } else if (activeFilter === "private") {
-      return userProperties.filter(
-        (up) => !up.propertyDealerName || up.propertyDealerName !== userData.companyName
-      );
+      return privateProperties;
     }
     return [];
-  }, [userProperties, companyProperties, activeFilter, userData.companyName]);
+  }, [
+    userProperties,
+    companyProperties,
+    privateProperties,
+    activeFilter,
+    userData.companyName,
+  ]);
 
   useEffect(() => {
     if (status === "authenticated" && userData.phone) {
@@ -111,7 +121,13 @@ export default function DealerPanel() {
         "http://localhost:3000/api/company-properties"
       );
       setCompanyProperties(companyResponse.data.data || []);
-      
+
+      // Fetch private properties
+      const privateResponse = await axios.get(
+        "http://localhost:3000/api/private-properties"
+      );
+      setPrivateProperties(privateResponse.data.data || []);
+
       router.refresh();
     } catch (err) {
       console.error("Error fetching properties:", err);
@@ -262,43 +278,53 @@ export default function DealerPanel() {
           transition={{ duration: 0.5, delay: 0.1 }}
           className="bg-white rounded-lg shadow p-4 flex flex-col gap-y-4"
         >
-          <div className="flex flex-wrap gap-2 mb-4">
-            <motion.button
-              whileHover={{ scale: 1.03 }}
-              whileTap={{ scale: 0.97 }}
-              onClick={() => handleFilterButtonClick("all")}
-              className={`px-4 py-2 rounded-lg transition-all duration-300 cursor-pointer ${
-                activeFilter === "all"
-                  ? "bg-primary text-white"
-                  : "bg-gray-200 text-gray-700"
-              }`}
-            >
-              All Properties
-            </motion.button>
-            <motion.button
-              whileHover={{ scale: 1.03 }}
-              whileTap={{ scale: 0.97 }}
-              onClick={() => handleFilterButtonClick("company")}
-              className={`px-4 py-2 rounded-lg transition-all duration-300 cursor-pointer ${
-                activeFilter === "company"
-                  ? "bg-primary text-white"
-                  : "bg-gray-200 text-gray-700"
-              }`}
-            >
-              Company Properties
-            </motion.button>
-            <motion.button
-              whileHover={{ scale: 1.03 }}
-              whileTap={{ scale: 0.97 }}
-              onClick={() => handleFilterButtonClick("private")}
-              className={`px-4 py-2 rounded-lg transition-all duration-300 cursor-pointer ${
-                activeFilter === "private"
-                  ? "bg-primary text-white"
-                  : "bg-gray-200 text-gray-700"
-              }`}
-            >
-              Private Properties
-            </motion.button>
+          <div className="flex flex-col flex-wrap gap-2 mb-4 w-full h-fit justify-center items-center">
+            <h2 className="text-base md:text-lg font-semibold mb-2">
+              Filter by Property Type
+            </h2>
+
+            <div className="w-fit h-fit flex gap-x-3">
+              <motion.button
+                whileHover={{ scale: 1.03 }}
+                whileTap={{ scale: 0.97 }}
+                onClick={() => handleFilterButtonClick("all")}
+                className={`px-4 py-2 rounded-lg transition-all duration-300 cursor-pointer ${
+                  activeFilter === "all"
+                    ? "bg-primary text-white"
+                    : "bg-gray-200 text-gray-700"
+                }`}
+              >
+                All Properties (
+                {userProperties.length +
+                  companyProperties.length +
+                  privateProperties.length}
+                )
+              </motion.button>
+              <motion.button
+                whileHover={{ scale: 1.03 }}
+                whileTap={{ scale: 0.97 }}
+                onClick={() => handleFilterButtonClick("company")}
+                className={`px-4 py-2 rounded-lg transition-all duration-300 cursor-pointer ${
+                  activeFilter === "company"
+                    ? "bg-primary text-white"
+                    : "bg-gray-200 text-gray-700"
+                }`}
+              >
+                Company Properties ({companyProperties.length})
+              </motion.button>
+              <motion.button
+                whileHover={{ scale: 1.03 }}
+                whileTap={{ scale: 0.97 }}
+                onClick={() => handleFilterButtonClick("private")}
+                className={`px-4 py-2 rounded-lg transition-all duration-300 cursor-pointer ${
+                  activeFilter === "private"
+                    ? "bg-primary text-white"
+                    : "bg-gray-200 text-gray-700"
+                }`}
+              >
+                Private Properties ({privateProperties.length})
+              </motion.button>
+            </div>
           </div>
 
           <div className="w-full h-fit flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">

@@ -51,7 +51,6 @@ const MapComponent = dynamic(() => import("../components/MapComponent"), {
 export default function PropertyDetail({ id, company }) {
   const [property, setProperty] = useState(null);
   const [similarProperties, setSimilarProperties] = useState([]);
-  const [loading, setLoading] = useState(true);
   const router = useRouter();
   const { data: session } = useSession();
 
@@ -60,7 +59,7 @@ export default function PropertyDetail({ id, company }) {
 
     const fetchProperty = async () => {
       try {
-        const res = await axios.get(`http://localhost:3000/api/user/${id}`);
+        const res = await axios.get(`http://localhost:3000/api/company-properties/${id}`);
         const item = res.data.data;
 
         const galleryImages = [
@@ -80,6 +79,9 @@ export default function PropertyDetail({ id, company }) {
           images: galleryImages,
           price: item.maxPrice || "Unmentioned",
           areaUnit: item.areaUnit,
+          maxPrice:item.maxPrice,
+          minPrice:item.minPrice,
+          priceUnit: item.priceUnit || "",
           beds: item.beds,
           Bath: item.Bath,
           location: item.location,
@@ -97,6 +99,25 @@ export default function PropertyDetail({ id, company }) {
           rating: 4.5,
         };
 
+        // id: item._id,
+        // src: imageUrl,
+        // images: images,
+        // price: item.maxPrice || item.minPrice || "Unmentioned",
+        // priceUnit: item.priceUnit || "",
+        // beds: item.beds || 0,
+        // Bath: item.Bath || 0,
+        // location: item.location || "",
+        // Area: item.Area || "",
+        // TotalArea: item.TotalArea || "",
+        // areaUnit: item.areaUnit || "",
+        // description: item.description || "",
+        // city: item.city || "",
+        // buyOrRent: item.buyOrRent || "Buy",
+        // category: item.category || "",
+        // propertyDealerName: item.propertyDealerName || "",
+        // senderName: item.senderName || "",
+        // createdAt: item.createdAt,
+        // phone: item.phone || "",
         setProperty(mapped);
         setSimilarProperties([
           { ...mapped, id: mapped.id + "1" },
@@ -107,7 +128,6 @@ export default function PropertyDetail({ id, company }) {
         console.error("Fetch failed:", err);
         setProperty(null);
       } finally {
-        setLoading(false);
       }
     };
 
@@ -119,7 +139,6 @@ export default function PropertyDetail({ id, company }) {
     window.scrollTo(0, 0);
   };
 
-  if (loading) return <div className="w-full h-screen flex items-center justify-center pt-16">Loading...</div>;
 
   if (!property) {
     return (
@@ -148,7 +167,7 @@ export default function PropertyDetail({ id, company }) {
           {/* Left */}
           <div className="flex-1 bg-white rounded-lg shadow p-6">
             <div className="flex flex-wrap items-center gap-2 mb-2">
-              <h1 className="text-xl md:text-2xl font-bold text-gray-900 mr-2">
+              <h1 className="w-80 text-xl md:text-2xl font-bold text-gray-900 mr-2 truncate">
                 {property.title}
               </h1>
               <span className="px-2 py-1 rounded text-xs font-semibold bg-primary text-white">
@@ -166,7 +185,7 @@ export default function PropertyDetail({ id, company }) {
                 />
               ))}
               <span className="ml-2 text-primary font-semibold">
-                PKR: {property.price}
+                PKR: {property.minPrice} - {property.maxPrice} {property.priceUnit}
               </span>
             </div>
 
@@ -203,31 +222,31 @@ export default function PropertyDetail({ id, company }) {
           </div>
 
           {/* Right - Dealer Info */}
-          <div className="w-full md:w-80 bg-white rounded-lg shadow p-6 h-fit">
-            <div className="flex items-center gap-3 mb-4">
-              <div className="w-10 h-10 rounded-full bg-green-100 flex items-center justify-center text-primary font-bold text-lg">
-                {property.Dealer?.[0] || "D"}
-              </div>
-              <div>
-                <div className="font-semibold text-gray-900">
-                  {property.Dealer}
-                </div>
-                <div className="text-xs text-gray-500">Dealer</div>
-              </div>
-            </div>
-            <div className="flex items-center gap-2 mb-2">
-              <IoIosCall className="text-primary" />
-              <span className="text-gray-700 text-sm">
-                {property.DealerPhone}
-              </span>
-            </div>
-            <Link
-              href={`https://wa.me/${property.DealerPhone}`}
-              className="flex gap-x-2 justify-center w-full mt-4 bg-primary items-center text-white py-2 rounded font-semibold text-sm"
-            >
-              <FaWhatsapp className="text-lg" /> WhatsApp
-            </Link>
-          </div>
+<div className="w-full md:w-80 bg-white rounded-lg shadow p-6 h-fit">
+  <div className="flex items-center gap-3 mb-4">
+    <div className="w-10 h-10 rounded-full bg-green-100 flex items-center justify-center text-primary font-bold text-lg">
+      {property.Dealer?.[0] || "D"}
+    </div>
+    <div>
+      <div className="font-semibold text-gray-900">
+        {property.Dealer}
+      </div>
+      <div className="text-xs text-gray-500">Dealer</div>
+    </div>
+  </div>
+  <div className="flex items-center gap-2 mb-2">
+    <IoIosCall className="text-primary" />
+    <span className="text-gray-700 text-sm">
+      {property.DealerPhone}
+    </span>
+  </div>
+  <Link
+    href={`https://wa.me/${property.DealerPhone}`}
+    className="flex gap-x-2 justify-center w-full mt-4 bg-primary items-center text-white py-2 rounded font-semibold text-sm"
+  >
+    <FaWhatsapp className="text-lg" /> WhatsApp
+  </Link>
+</div>
         </div>
 
         {/* Map */}
@@ -264,7 +283,7 @@ export default function PropertyDetail({ id, company }) {
                   </span>
                 </div>
                 <div className="p-4">
-                  <h4 className="text-base font-semibold mb-1">
+                  <h4 className="text-base font-semibold mb-1 w-80 truncate">
                     {prop.title}
                   </h4>
                   <p className="text-gray-600 text-xs mb-2">{prop.location}</p>
