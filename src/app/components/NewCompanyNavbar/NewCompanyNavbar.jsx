@@ -9,6 +9,7 @@ import { TbLogout } from "react-icons/tb";
 import { FiSettings } from "react-icons/fi";
 import axios from "axios";
 import { toast } from "react-toastify";
+import apiClient from "../../../../src/service/apiClient";
 
 const NewCompanyNavbar = () => {
   const [userData, setUserData] = useState(null);
@@ -49,11 +50,12 @@ const NewCompanyNavbar = () => {
     const fetchData = async () => {
       try {
         if (session?.user?.phone) {
-          const res = await axios.get(
-            `http://localhost:3000/api/users/${encodeURIComponent(
-              session.user.phone
-            )}`
-          );
+          // const res = await axios.get(
+          //   `http://localhost:3000/api/users/${encodeURIComponent(
+          //     session.user.phone
+          //   )}`
+          // );
+          const res = await apiClient.get(`/users/${encodeURIComponent(session.user.phone)}`);
           const data = res.data.data;
           setUserData(data);
           setFullName(data.fullName || "");
@@ -99,24 +101,29 @@ const NewCompanyNavbar = () => {
       formData.append("phone", phone);
       formData.append("logoColor", logoColor);
 
-      const response = await axios.patch(
-        `http://localhost:3000/api/users/${encodeURIComponent(
-          session.user.phone
-        )}`,
-        formData,
-        {
-          headers: {
-            "Content-Type": "multipart/form-data",
-          },
-        }
-      );
+      // const response = await axios.patch(
+      //   `http://localhost:3000/api/users/${encodeURIComponent(
+      //     session.user.phone
+      //   )}`,
+      //   formData,
+      //   {
+      //     headers: {
+      //       "Content-Type": "multipart/form-data",
+      //     },
+      //   }
+      // );
+      const response = await apiClient.patch(`/users/${encodeURIComponent(session.user.phone)}`, formData, {
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
+      });
 
       if (response.data.success) {
-        const res = await axios.get(
-          `http://localhost:3000/api/users/${encodeURIComponent(
-            session.user.phone
-          )}`
-        );
+          // const res = await axios.get(
+          //   `http://localhost:3000/api/users/${encodeURIComponent(
+          //     session.user.phone
+          //   )}`
+          const res = await apiClient.get(`/users/${encodeURIComponent(session.user.phone)}`);
         setUserData(res.data.data);
         toast.success("Settings saved successfully!");
         setIsSettingsModalOpen(false);

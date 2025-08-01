@@ -4,6 +4,7 @@ import { useRouter } from "next/navigation";
 import axios from "axios";
 import { useState, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
+import apiClient from "../../../../src/service/apiClient";
 
 const backdropVariants = {
   hidden: { opacity: 0 },
@@ -86,7 +87,8 @@ export default function PropertyTable({ apiData, filters }) {
     const id = propertyToDelete._id;
     setDeletingId(id);
     try {
-      await axios.delete(`http://localhost:3000/api/user/${id}`);
+      // await axios.delete(`http://localhost:3000/api/user/${id}`);
+      await apiClient.delete(`/user/${id}`);
       router.refresh();
       setIsDeleteModalOpen(false);
       setPropertyToDelete(null);
@@ -161,10 +163,11 @@ export default function PropertyTable({ apiData, filters }) {
 
   const handleSaveChanges = async () => {
     try {
-      await axios.patch(
-        `http://localhost:3000/api/user/${selectedProperty._id}`,
-        formData
-      );
+      // await axios.patch(
+      //   `http://localhost:3000/api/user/${selectedProperty._id}`,
+      //   formData
+      // );
+      await apiClient.patch(`/user/${selectedProperty._id}`, formData);
       router.refresh();
       handleCloseModal();
 

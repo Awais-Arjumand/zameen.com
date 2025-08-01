@@ -11,6 +11,7 @@ import { useRouter } from "next/navigation";
 import dynamic from "next/dynamic";
 import axios from "axios";
 import { useSession } from "next-auth/react";
+import apiClient from "../../../src/service/apiClient";
 
 const ImageGallery = ({ images }) => {
   const [selected, setSelected] = useState(0);
@@ -59,7 +60,8 @@ export default function PropertyDetail({ id, company }) {
 
     const fetchProperty = async () => {
       try {
-        const res = await axios.get(`http://localhost:3000/api/company-properties/${id}`);
+        // const res = await axios.get(`http://localhost:3000/api/company-properties/${id}`);
+        const res = await apiClient.get(`/company-properties/${id}`);
         const item = res.data.data;
 
         const galleryImages = [

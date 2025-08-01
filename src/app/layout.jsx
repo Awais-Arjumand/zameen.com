@@ -23,7 +23,7 @@ export default function RootLayout({ children }) {
       >
         <CustomSessionProvider>
           <ClientLayout>
-            <Suspense fallback={<di>error</di>}>{children}</Suspense>
+            <Suspense fallback={<div>error</div>}>{children}</Suspense>
           </ClientLayout>
         </CustomSessionProvider>
       </body>

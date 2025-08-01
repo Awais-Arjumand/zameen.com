@@ -4,7 +4,7 @@ import dynamic from "next/dynamic";
 import { useRouter, useSearchParams } from "next/navigation";
 import { CiSearch } from "react-icons/ci";
 import { useSession } from "next-auth/react";
-import axios from "axios";
+import apiClient from "../../../../src/service/apiClient";
 
 const Select = dynamic(() => import("react-select"), {
   ssr: false,
@@ -24,9 +24,10 @@ const PropertySearchFilter = ({ onFilter }) => {
     const fetchUserByPhone = async () => {
       if (session?.user?.phone) {
         try {
-          const res = await axios.get(
-            `http://localhost:3000/api/users/${encodeURIComponent(session.user.phone)}`
-          );
+          // const res = await axios.get(
+          //   `http://localhost:3000/api/users/${encodeURIComponent(session.user.phone)}`
+          // );
+          const res = await apiClient.get(`/users/${encodeURIComponent(session.user.phone)}`);
           // console.log("📦 User fetched by phone:", res.data.data);
           setUser(res.data.data);
           // console.log(user.logoColor);

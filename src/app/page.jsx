@@ -6,6 +6,7 @@ import HousesBoxes from "./components/HousesBoxes/HousesBoxes";
 import Loader from "./components/Loader/Loader";
 import axios from "axios";
 import { useSearchParams } from "next/navigation";
+import apiClient from "../../src/service/apiClient";
 
 const BACKEND_URL = "http://localhost:3000";
 
@@ -169,7 +170,8 @@ export default function Home() {
   const fetchProperties = useCallback(async () => {
     try {
       setIsLoading(true);
-      const response = await axios.get(`${BACKEND_URL}/api/user`);
+      // const response = await axios.get(`${BACKEND_URL}/api/user`);
+      const response = await apiClient.get(`/user`);
       const apiData = response.data.data;
       const mapped = mapAPIData(apiData);
       setHouseData(mapped);
