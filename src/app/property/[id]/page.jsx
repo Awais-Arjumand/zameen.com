@@ -139,7 +139,7 @@ export default function PropertyDetail({ params: paramsPromise }) {
   }
 
   return (
-    <div className="w-full min-h-screen bg-[#f7f7f7] py-6 px-2 md:px-6">
+    <div className="w-full min-h-screen bg-[#f7f7f7] py-6 px-2 md:px-6 mt-16">
       <div className="max-w-full mx-auto">
         <Link
           href="/"
