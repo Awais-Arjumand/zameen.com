@@ -1,9 +1,10 @@
 import { getServerSession } from "next-auth";
 import clientPromise from "../../../lib/mongodb";
-import { authOptions } from "../../auth/[...nextauth]/route";
+import { handler } from "../auth/[...nextauth]/route";
+// import { handler } from "../../auth/[...nextauth]/route";
 
 export async function GET(request) {
-  const session = await getServerSession(authOptions);
+  const session = await getServerSession(handler);
   const { searchParams } = new URL(request.url);
   const companyId = searchParams.get("companyId");
 
