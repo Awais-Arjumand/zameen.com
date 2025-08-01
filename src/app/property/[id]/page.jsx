@@ -12,7 +12,7 @@ import dynamic from "next/dynamic";
 import axios from "axios";
 import Loader from "../../auth/loading";
 import apiClient from "../../../../src/service/apiClient";
-import NavBar from "../../../../src/components/NavBar";
+import NavBar from "../../../../src/app/components/NavBar/NavBar";
 
 // Gallery component for main image + thumbnails
 function ImageGallery({ images }) {
