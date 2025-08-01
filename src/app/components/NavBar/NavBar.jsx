@@ -28,7 +28,7 @@ const NavBar = ({ userData: propUserData }) => {
     ...(propUserData || {}),
     ...(localUserData || {}),
     ...(session?.user || {}),
-    fullName: propUserData?.fullName || localUserData?.fullName || session?.user?.fullName || 'User',
+    fullName: propUserData?.fullName || localUserData?.fullName || session?.user?.fullName || '',
     phone: propUserData?.phone || localUserData?.phone || session?.user?.phone || '',
     logo: propUserData?.logo || localUserData?.logo || session?.user?.logo || "/images/Login/img2.svg",
     logoColor: propUserData?.logoColor || localUserData?.logoColor || session?.user?.logoColor || "#3B404C"
