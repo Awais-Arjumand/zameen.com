@@ -17,6 +17,7 @@ const NewCompanyNavbar = () => {
   const [isSettingsModalOpen, setIsSettingsModalOpen] = useState(false);
   const [fullName, setFullName] = useState("");
   const [companyName, setCompanyName] = useState("");
+  const [originalCompanyName, setOriginalCompanyName] = useState("");
   const [phone, setPhone] = useState("");
   const [logoColor, setLogoColor] = useState("#000000");
   const [isSaving, setIsSaving] = useState(false);
@@ -58,6 +59,7 @@ const NewCompanyNavbar = () => {
           setFullName(data.fullName || "");
           setPhone(data.phone || "");
           setCompanyName(data.companyName || "");
+          setOriginalCompanyName(data.companyName || "");
           setLogoColor(data.logoColor || "#000000");
           setLogo(data.logo || "");
         }
@@ -118,7 +120,11 @@ const NewCompanyNavbar = () => {
         setUserData(res.data.data);
         toast.success("Settings saved successfully!");
         setIsSettingsModalOpen(false);
-        router.push("/auth/signin");
+        
+        // Only logout and redirect if company name was changed
+        if (companyName !== originalCompanyName) {
+          await signOut({ callbackUrl: "/auth/signin" });
+        }
       } else {
         throw new Error(response.data.message || "Failed to save settings");
       }
@@ -152,7 +158,7 @@ const NewCompanyNavbar = () => {
     <>
       <nav className="w-full bg-white shadow-md fixed top-0 z-30">
         <div className="flex h-fit items-center justify-between gap-x-4 shadow-lg bg-[#f7f7f7] px-4 py-4 text-sm text-gray-700 md:flex lg:px-12">
-          <Link href={"/"} className="text-2xl font-bold text-gray-500">
+          <Link href={`/${companyName}`}  className="text-2xl font-bold text-gray-500">
             <Image
               alt="Company Logo"
               src={logoUrl}
@@ -284,7 +290,6 @@ const NewCompanyNavbar = () => {
                 <button
                   type="submit"
                   disabled={isSaving}
-                  onClick={() => signOut({ callbackUrl: "/auth/signin" })}
                   className={`bg-primary cursor-pointer text-white px-4 py-2 rounded w-full mt-4 ${
                     isSaving ? "opacity-70" : "hover:opacity-90"
                   }`}
