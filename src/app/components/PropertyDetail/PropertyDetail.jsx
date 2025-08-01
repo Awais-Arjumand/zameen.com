@@ -9,6 +9,7 @@ import { IoIosCall, IoIosArrowBack } from "react-icons/io";
 import { useRouter } from "next/navigation";
 import dynamic from "next/dynamic";
 import axios from "axios";
+import apiClient from "../../../../src/service/apiClient";
 
 const MapComponent = dynamic(() => import("../MapComponent"), {
   ssr: false,
@@ -25,7 +26,8 @@ export default function PropertyDetail({ params }) {
     if (!cardid) return;
     const fetchProperty = async () => {
       try {
-        const res = await axios.get(`http://localhost:3000/api/user/${cardid}`);
+        // const res = await axios.get(`http://localhost:3000/api/user/${cardid}`);
+        const res = await apiClient.get(`/user/${cardid}`);
         const item = res.data.data;
         const galleryImages = [
           item.image?.startsWith("http")

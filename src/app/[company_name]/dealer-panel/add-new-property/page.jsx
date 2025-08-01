@@ -13,6 +13,7 @@ import Link from "next/link";
 import { IoChevronBackSharp } from "react-icons/io5";
 import { motion, AnimatePresence } from "framer-motion";
 import NewCompanyNavbar from "../../../components/NewCompanyNavbar/NewCompanyNavbar";
+import apiClient from "../../../../../src/service/apiClient";
 
 const formatPhoneForSubmission = (phone, countryCode = "PK") => {
   if (!phone) return "";
@@ -122,16 +123,19 @@ const Page = () => {
       let apiEndpoint;
       switch (companyType.value) {
         case "company-website":
-          apiEndpoint = "http://localhost:3000/api/company-properties";
+          // apiEndpoint = "http://localhost:3000/api/company-properties";
+          apiEndpoint = "/company-properties";
           break;
         case "private":
-          apiEndpoint = "http://localhost:3000/api/private-properties";
+          // apiEndpoint = "http://localhost:3000/api/private-properties";
+          apiEndpoint = "/private-properties";
           break;
         default:
-          apiEndpoint = "http://localhost:3000/api/user";
+          // apiEndpoint = "http://localhost:3000/api/user";
+          apiEndpoint = "/user";
       }
 
-      const response = await axios.post(apiEndpoint, apiFormData, {
+      const response = await apiClient.post(apiEndpoint, apiFormData, {
         headers: { "Content-Type": "multipart/form-data" },
       });
 

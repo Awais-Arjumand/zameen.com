@@ -12,6 +12,7 @@ import { useRouter } from "next/navigation";
 import dynamic from "next/dynamic";
 import axios from "axios";
 import Loader from "../../auth/loading";
+import apiClient from "../../../../src/service/apiClient";
 
 // Gallery component for main image + thumbnails
 function ImageGallery({ images }) {
@@ -69,9 +70,10 @@ export default function PropertyDetail({ params: paramsPromise }) {
     if (!params.id) return;
     const fetchProperty = async () => {
       try {
-        const res = await axios.get(
-          `http://localhost:3000/api/user/${params.id}`
-        );
+        // const res = await axios.get(
+        //   `http://localhost:3000/api/user/${params.id}`
+        // );
+        const res = await apiClient.get(`/user/${params.id}`);
         const item = res.data.data;
         // Dummy images for gallery
         const galleryImages = [

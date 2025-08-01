@@ -3,8 +3,8 @@ import React, { useState, useEffect } from "react";
 import dynamic from "next/dynamic";
 import { useRouter, useSearchParams } from "next/navigation";
 import { CiSearch } from "react-icons/ci";
-import axios from "axios";
 import { useSession } from "next-auth/react";
+import apiClient from "../../../../src/service/apiClient";
 
 const Select = dynamic(() => import("react-select"), {
   ssr: false,
@@ -50,9 +50,10 @@ const CompanyPropertySearchFilter = ({ onFilter, logoColor }) => {
       }
       
       try {
-        const response = await axios.get(
-          `http://localhost:3000/api/users?phone=${encodeURIComponent(session?.user?.phone)}`
-        );
+        // const response = await axios.get(
+        //   `http://localhost:3000/api/users?phone=${encodeURIComponent(session?.user?.phone)}`
+        // );
+        const response = await apiClient.get(`/users?phone=${encodeURIComponent(session?.user?.phone)}`);
         setUserData(response.data.data);
         console.log(userData);
         

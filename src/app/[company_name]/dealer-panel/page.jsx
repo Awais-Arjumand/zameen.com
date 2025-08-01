@@ -8,6 +8,7 @@ import { useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
 import { LuRefreshCw } from "react-icons/lu";
 import { motion, AnimatePresence } from "framer-motion";
+import apiClient from "../../../../src/service/apiClient";
 
 export default function DealerPanel() {
   const { data: session, status } = useSession();
@@ -37,9 +38,10 @@ export default function DealerPanel() {
     const fetchUserData = async () => {
       if (status === "authenticated" && session?.user?.phone) {
         try {
-          const response = await axios.get(
-            `http://localhost:3000/api/users/${session.user.phone}`
-          );
+          // const response = await axios.get(
+          //   `http://localhost:3000/api/users/${session.user.phone}`
+          // );
+          const response = await apiClient.get(`/users/${session.user.phone}`);
           if (response.data && response.data.data) {
             setUserData({
               fullName: response.data.data.fullName,
@@ -104,12 +106,14 @@ export default function DealerPanel() {
   const fetchDealerProperties = async () => {
     try {
       // Fetch user properties
-      const userResponse = await axios.get(
-        `http://localhost:3000/api/user?phone=${encodeURIComponent(
-          userData.phone
-        )}`
+      // const userResponse = await axios.get(
+      //   `http://localhost:3000/api/user?phone=${encodeURIComponent(
+      //     userData.phone
+      //   )}`
+      // );
+      const userResponse = await apiClient.get(
+        `/user?phone=${encodeURIComponent(userData.phone)}`
       );
-
       // Filter properties where senderName matches user's fullName
       const userProps = userResponse.data.data.filter(
         (property) => property.senderName === userData.fullName
@@ -117,14 +121,20 @@ export default function DealerPanel() {
       setUserProperties(userProps || []);
 
       // Fetch company properties
-      const companyResponse = await axios.get(
-        "http://localhost:3000/api/company-properties"
+      // const companyResponse = await axios.get(
+      //   "http://localhost:3000/api/company-properties"
+      // );
+      const companyResponse = await apiClient.get(
+        "/company-properties"
       );
       setCompanyProperties(companyResponse.data.data || []);
 
       // Fetch private properties
-      const privateResponse = await axios.get(
-        "http://localhost:3000/api/private-properties"
+      // const privateResponse = await axios.get(
+      //   "http://localhost:3000/api/private-properties"
+      // );
+      const privateResponse = await apiClient.get(
+        "/private-properties"
       );
       setPrivateProperties(privateResponse.data.data || []);
 

@@ -5,8 +5,10 @@ import NewCompanyNavbar from "../components/NewCompanyNavbar/NewCompanyNavbar";
 import CompanyHousesBoxes from "../[company_name]/CompanyHousesBoxes/CompanyHousesBoxes";
 import axios from "axios";
 import PropertySearchFilter from "../components/PropertySearchFilter/PropertySearchFilter";
+import apiClient from "../../../src/service/apiClient";
 
-const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:3000";
+const BACKEND_URL =
+  process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:3000";
 
 const mapAPIData = (apiData) => {
   return apiData.map((item) => {
@@ -76,7 +78,7 @@ const filterProperties = (properties, filters) => {
     // Beds filter
     if (filters.beds) {
       const bedsNum = parseInt(property.beds);
-      if (filters.beds.endsWith('+')) {
+      if (filters.beds.endsWith("+")) {
         const minBeds = parseInt(filters.beds);
         if (bedsNum < minBeds) return false;
       } else if (bedsNum !== parseInt(filters.beds)) {
@@ -99,7 +101,10 @@ const filterProperties = (properties, filters) => {
     }
 
     // Location filter
-    if (filters.location && !property.location.toLowerCase().includes(filters.location.toLowerCase())) {
+    if (
+      filters.location &&
+      !property.location.toLowerCase().includes(filters.location.toLowerCase())
+    ) {
       return false;
     }
 
@@ -112,8 +117,10 @@ const filterProperties = (properties, filters) => {
         property.city,
         property.category,
         property.buyOrRent,
-      ].join(' ').toLowerCase();
-      
+      ]
+        .join(" ")
+        .toLowerCase();
+
       if (!searchFields.includes(keyword)) {
         return false;
       }
@@ -131,22 +138,29 @@ export default async function CompanyPage({ params, searchParams }) {
   }
 
   const companyNameFromSession = session.user?.companyName;
-  if (companyNameFromSession && params.company_name !== companyNameFromSession) {
+  if (
+    companyNameFromSession &&
+    params.company_name !== companyNameFromSession
+  ) {
     redirect(`/${companyNameFromSession}`);
   }
 
   let properties = [];
   try {
-    const propRes = await axios.get(`${BACKEND_URL}/api/company-properties`);
+    // const propRes = await axios.get(`${BACKEND_URL}/api/company-properties`);
+    const propRes = await apiClient.get(`/company-properties`);
+    console.log(propRes.data.data, "123123123");
+
     properties = mapAPIData(propRes.data.data || []);
   } catch (error) {
     console.error("Error fetching properties:", error);
   }
 
   // Apply filters if any searchParams exist
-  const filteredProperties = searchParams && Object.keys(searchParams).length > 0 
-    ? filterProperties(properties, searchParams)
-    : properties;
+  const filteredProperties =
+    searchParams && Object.keys(searchParams).length > 0
+      ? filterProperties(properties, searchParams)
+      : properties;
 
   return (
     <div className="w-full min-h-screen bg-[#fafafa] flex flex-col gap-y-5 ">
@@ -154,8 +168,8 @@ export default async function CompanyPage({ params, searchParams }) {
 
       <div className="mt-28 w-full h-fit bg-[#fafafa] py-7 px-6 flex flex-col gap-y-8">
         <div className="max-w-7xl mx-auto w-full flex flex-col gap-y-5">
-          <PropertySearchFilter 
-            logoColor={session.user?.logoColor || "#3B404C"} 
+          <PropertySearchFilter
+            logoColor={session.user?.logoColor || "#3B404C"}
             initialFilters={searchParams}
           />
           {filteredProperties.length === 0 ? (

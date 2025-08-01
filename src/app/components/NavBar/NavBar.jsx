@@ -5,7 +5,7 @@ import { signOut, useSession } from "next-auth/react";
 import Image from "next/image";
 import { usePathname } from "next/navigation";
 import { TbLogout } from "react-icons/tb";
-import axios from "axios";
+import apiClient from "../../../../src/service/apiClient";
 
 const NavBar = ({ userData: propUserData }) => {
   const { data: session } = useSession();
@@ -52,10 +52,12 @@ const NavBar = ({ userData: propUserData }) => {
       const fetchUserData = async () => {
         setLoading(true);
         try {
-          const response = await axios.get("http://localhost:3000/api/users", {
+          // const response = await axios.get("http://localhost:3000/api/users", {
+          //   params: { phone: session.user.phone }
+          // });
+          const response = await apiClient.get("/users", {
             params: { phone: session.user.phone }
           });
-          
           if (response.data?.data) {
             const user = Array.isArray(response.data.data)
               ? response.data.data.find(u => u.phone === session.user.phone)
