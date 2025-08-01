@@ -70,9 +70,7 @@ export default function PropertyDetail({ params: paramsPromise }) {
     if (!params.id) return;
     const fetchProperty = async () => {
       try {
-        // const res = await axios.get(
-        //   `http://localhost:3000/api/user/${params.id}`
-        // );
+      
         const res = await apiClient.get(`/user/${params.id}`);
         const item = res.data.data;
         // Dummy images for gallery
@@ -80,7 +78,7 @@ export default function PropertyDetail({ params: paramsPromise }) {
           item.image?.startsWith("http")
             ? item.image
             : item.image?.startsWith("/uploads/")
-            ? `http://localhost:3000${item.image}`
+            ? `https://pakistan-property-portal-backend-production.up.railway.app${item.image}`
             : item.image || "/images/default-property.jpg",
           "/public/images/default-property.jpg",
           "/public/images/default-img.png.jpg",

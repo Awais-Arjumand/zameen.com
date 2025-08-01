@@ -8,7 +8,7 @@ import axios from "axios";
 import { useSearchParams } from "next/navigation";
 import apiClient from "../../src/service/apiClient";
 
-const BACKEND_URL = "http://localhost:3000";
+const BACKEND_URL = "https://pakistan-property-portal-backend-production.up.railway.app";
 
 const mapAPIData = (apiData) => {
   return apiData.map((item) => {

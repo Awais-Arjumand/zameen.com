@@ -60,7 +60,6 @@ export default function PropertyDetail({ id, company }) {
 
     const fetchProperty = async () => {
       try {
-        // const res = await axios.get(`http://localhost:3000/api/company-properties/${id}`);
         const res = await apiClient.get(`/company-properties/${id}`);
         const item = res.data.data;
 
@@ -68,7 +67,7 @@ export default function PropertyDetail({ id, company }) {
           item.image?.startsWith("http")
             ? item.image
             : item.image?.startsWith("/uploads/")
-            ? `http://localhost:3000${item.image}`
+            ? `https://pakistan-property-portal-backend-production.up.railway.app${item.image}`
             : item.image || "/images/default-property.jpg",
           "/images/default-property.jpg",
           "/images/default-img.png.jpg",

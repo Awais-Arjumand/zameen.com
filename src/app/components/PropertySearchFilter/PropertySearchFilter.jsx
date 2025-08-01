@@ -24,9 +24,7 @@ const PropertySearchFilter = ({ onFilter }) => {
     const fetchUserByPhone = async () => {
       if (session?.user?.phone) {
         try {
-          // const res = await axios.get(
-          //   `http://localhost:3000/api/users/${encodeURIComponent(session.user.phone)}`
-          // );
+        
           const res = await apiClient.get(`/users/${encodeURIComponent(session.user.phone)}`);
           // console.log("📦 User fetched by phone:", res.data.data);
           setUser(res.data.data);

@@ -6,9 +6,7 @@ import AdminPageClient from "../components/admin/AdminPageClient";
 export default async function AdminPage() {
   let apiData = [];
   try {
-    // const res = await fetch("http://localhost:3000/api/user", {
-    //   cache: "no-store",
-    // });
+
     const res = await apiClient.get("/user");
     const json = await res.json();
     apiData = json.data;
