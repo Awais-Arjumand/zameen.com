@@ -50,11 +50,7 @@ const NewCompanyNavbar = () => {
     const fetchData = async () => {
       try {
         if (session?.user?.phone) {
-          // const res = await axios.get(
-          //   `http://localhost:3000/api/users/${encodeURIComponent(
-          //     session.user.phone
-          //   )}`
-          // );
+    
           const res = await apiClient.get(`/users/${encodeURIComponent(session.user.phone)}`);
           const data = res.data.data;
           setUserData(data);
@@ -101,17 +97,7 @@ const NewCompanyNavbar = () => {
       formData.append("phone", phone);
       formData.append("logoColor", logoColor);
 
-      // const response = await axios.patch(
-      //   `http://localhost:3000/api/users/${encodeURIComponent(
-      //     session.user.phone
-      //   )}`,
-      //   formData,
-      //   {
-      //     headers: {
-      //       "Content-Type": "multipart/form-data",
-      //     },
-      //   }
-      // );
+      
       const response = await apiClient.patch(`/users/${encodeURIComponent(session.user.phone)}`, formData, {
         headers: {
           "Content-Type": "multipart/form-data",
@@ -119,10 +105,7 @@ const NewCompanyNavbar = () => {
       });
 
       if (response.data.success) {
-          // const res = await axios.get(
-          //   `http://localhost:3000/api/users/${encodeURIComponent(
-          //     session.user.phone
-          //   )}`
+         
           const res = await apiClient.get(`/users/${encodeURIComponent(session.user.phone)}`);
         setUserData(res.data.data);
         toast.success("Settings saved successfully!");

@@ -76,13 +76,10 @@ export default function DealerPropertyTable({
     try {
       let endpoint;
       if (propertyToDelete.status === "company-website") {
-        // endpoint = `http://localhost:3000/api/company-properties/${id}`;
         endpoint = `/company-properties/${id}`;
       } else if (propertyToDelete.status === "private") {
-        // endpoint = `http://localhost:3000/api/private-properties/${id}`;
         endpoint = `/private-properties/${id}`;
       } else {
-        // endpoint = `http://localhost:3000/api/user/${id}`;
         endpoint = `/user/${id}`;
       }
 
@@ -174,14 +171,11 @@ export default function DealerPropertyTable({
     try {
       let endpoint;
       if (selectedProperty.status === "company-website" || formData.status === "company-website") {
-        // endpoint = `http://localhost:3000/api/company-properties/${selectedProperty._id}`;
         endpoint = `/company-properties/${selectedProperty._id}`;
         formData.propertyDealerName = companyName;
       } else if (selectedProperty.status === "private" || formData.status === "private") {
-        // endpoint = `http://localhost:3000/api/private-properties/${selectedProperty._id}`;
         endpoint = `/private-properties/${selectedProperty._id}`;
       } else {
-        // endpoint = `http://localhost:3000/api/user/${selectedProperty._id}`;
         endpoint = `/user/${selectedProperty._id}`;
       }
 

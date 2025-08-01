@@ -26,14 +26,13 @@ export default function PropertyDetail({ params }) {
     if (!cardid) return;
     const fetchProperty = async () => {
       try {
-        // const res = await axios.get(`http://localhost:3000/api/user/${cardid}`);
         const res = await apiClient.get(`/user/${cardid}`);
         const item = res.data.data;
         const galleryImages = [
           item.image?.startsWith("http")
             ? item.image
             : item.image?.startsWith("/uploads/")
-            ? `http://localhost:3000${item.image}`
+            ? `https://pakistan-property-portal-backend-production.up.railway.app${item.image}`
             : item.image || "/images/default-property.jpg",
           "/images/default-property.jpg",
           "/images/default-img.png",

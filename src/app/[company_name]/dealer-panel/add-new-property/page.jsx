@@ -123,15 +123,12 @@ const Page = () => {
       let apiEndpoint;
       switch (companyType.value) {
         case "company-website":
-          // apiEndpoint = "http://localhost:3000/api/company-properties";
           apiEndpoint = "/company-properties";
           break;
         case "private":
-          // apiEndpoint = "http://localhost:3000/api/private-properties";
           apiEndpoint = "/private-properties";
           break;
         default:
-          // apiEndpoint = "http://localhost:3000/api/user";
           apiEndpoint = "/user";
       }
 

@@ -8,7 +8,7 @@ import PropertySearchFilter from "../components/PropertySearchFilter/PropertySea
 import apiClient from "../../../src/service/apiClient";
 
 const BACKEND_URL =
-  process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:3000";
+  process.env.NEXT_PUBLIC_BACKEND_URL || "https://pakistan-property-portal-backend-production.up.railway.app/";
 
 const mapAPIData = (apiData) => {
   return apiData.map((item) => {

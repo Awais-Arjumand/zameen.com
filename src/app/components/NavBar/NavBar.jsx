@@ -52,9 +52,7 @@ const NavBar = ({ userData: propUserData }) => {
       const fetchUserData = async () => {
         setLoading(true);
         try {
-          // const response = await axios.get("http://localhost:3000/api/users", {
-          //   params: { phone: session.user.phone }
-          // });
+         
           const response = await apiClient.get("/users", {
             params: { phone: session.user.phone }
           });

@@ -50,9 +50,7 @@ const CompanyPropertySearchFilter = ({ onFilter, logoColor }) => {
       }
       
       try {
-        // const response = await axios.get(
-        //   `http://localhost:3000/api/users?phone=${encodeURIComponent(session?.user?.phone)}`
-        // );
+     
         const response = await apiClient.get(`/users?phone=${encodeURIComponent(session?.user?.phone)}`);
         setUserData(response.data.data);
         console.log(userData);
