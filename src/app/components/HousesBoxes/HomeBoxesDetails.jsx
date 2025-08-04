@@ -22,21 +22,38 @@ const HomeBoxesDetails = ({
   priceUnit,
   areaUnit,
 }) => {
-  // Image handling with animation support
   const [isHovered, setIsHovered] = useState(false);
   const defaultImg = "/images/default-property.jpg";
-  
-  // Validate the image URL
-  const isValidUrl = (url) => {
-    try {
-      new URL(url);
-      return true;
-    } catch (e) {
-      return false;
-    }
-  };
+  const [imgSrc, setImgSrc] = useState(defaultImg);
+  const [isLoading, setIsLoading] = useState(true);
 
-  const [imgSrc, setImgSrc] = useState(isValidUrl(src) ? src : defaultImg);
+  // Image loading optimization
+  useEffect(() => {
+    if (!src) {
+      setImgSrc(defaultImg);
+      setIsLoading(false);
+      return;
+    }
+
+    // Create a HTMLImageElement instead of using new Image()
+    const img = document.createElement('img');
+    img.src = src;
+
+    img.onload = () => {
+      setImgSrc(src);
+      setIsLoading(false);
+    };
+
+    img.onerror = () => {
+      setImgSrc(defaultImg);
+      setIsLoading(false);
+    };
+
+    return () => {
+      img.onload = null;
+      img.onerror = null;
+    };
+  }, [src]);
 
   // Animation variants
   const cardVariants = {
@@ -70,22 +87,31 @@ const HomeBoxesDetails = ({
       className="w-full h-fit bg-white rounded-xl shadow-md overflow-hidden border border-gray-200 hover:shadow-lg transition-all duration-300 flex flex-col"
     >
       <Link href={`/property/${id}`} className="w-full h-full">
-        <div className="relative w-full h-48 overflow-hidden">
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ duration: 0.5 }}
-            className="w-full h-full"
-          >
-            <Image
-              src={imgSrc}
-              alt={description || "Property image"}
-              fill
-              className="object-cover rounded-t-xl"
-              sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-              onError={() => setImgSrc(defaultImg)}
-            />
-          </motion.div>
+        <div className="relative w-full h-48 overflow-hidden bg-gray-100">
+          {isLoading ? (
+            <div className="absolute inset-0 flex items-center justify-center bg-gray-200 animate-pulse">
+              <div className="w-12 h-12 border-4 border-gray-300 border-t-[#1CC323] rounded-full animate-spin"></div>
+            </div>
+          ) : (
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ duration: 0.3 }}
+              className="w-full h-full"
+            >
+              <Image
+                src={imgSrc}
+                alt={description || "Property image"}
+                fill
+                className="object-cover rounded-t-xl"
+                sizes="(max-width: 640px) 100vw, (max-width: 768px) 50vw, (max-width: 1024px) 33vw, 25vw"
+                priority={false}
+                loading="lazy"
+                quality={75}
+                onError={() => setImgSrc(defaultImg)}
+              />
+            </motion.div>
+          )}
 
           <div className={`absolute top-2 left-2 px-3 roboto py-1 rounded text-xs font-semibold ${buyOrRent === 'For Rent' ? 'bg-gray-700 text-white' : 'bg-green-500 text-white'}`}>
             {buyOrRent}

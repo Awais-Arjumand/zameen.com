@@ -52,7 +52,6 @@ const NavBar = ({ userData: propUserData }) => {
       const fetchUserData = async () => {
         setLoading(true);
         try {
-         
           const response = await apiClient.get("/users", {
             params: { phone: session.user.phone }
           });
@@ -117,7 +116,6 @@ const NavBar = ({ userData: propUserData }) => {
                   disabled={loading}
                 >
                   <div className="hidden md:block text-right">
-                   
                     <p className="text-xs text-gray-500">
                       {userData.phone}
                     </p>
@@ -175,18 +173,6 @@ const NavBar = ({ userData: propUserData }) => {
           ) : null}
         </div>
       </div>
-
-      {isMobile && showAuthButtons && (IsHome || IsPropertyId) && !isDealerPanel && (
-        <div className="flex justify-between items-center p-4 md:hidden">
-          <Link
-            className="rounded px-4 py-1.5 flex justify-center items-center w-fit h-fit text-xs font-normal text-white transition-all duration-300 hover:opacity-90"
-            href={isAuthenticated ? "/dealer-panel" : "/auth/signup"}
-            style={buttonStyle}
-          >
-            {isAuthenticated ? "My Property" : "Join Us"}
-          </Link>
-        </div>
-      )}
     </nav>
   );
 };

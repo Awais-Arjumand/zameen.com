@@ -9,7 +9,6 @@ import { FaWhatsapp, FaStar } from "react-icons/fa6";
 import { IoIosCall, IoIosArrowBack } from "react-icons/io";
 import { useRouter } from "next/navigation";
 import dynamic from "next/dynamic";
-import axios from "axios";
 import Loader from "../../auth/loading";
 import apiClient from "../../../../src/service/apiClient";
 import NavBar from "../../../../src/app/components/NavBar/NavBar";
