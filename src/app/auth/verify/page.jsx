@@ -83,7 +83,6 @@ export default function Verify() {
       if (result?.error) {
         setError('Invalid verification code');
       }
-      // The useEffect will handle the redirect once session is updated
     } catch (err) {
       setError('Verification failed. Please try again.');
       console.error(err);
@@ -144,7 +143,7 @@ export default function Verify() {
                 </div>
               )}
               
-              {/* OTP Input Boxes */}
+              {/* OTP Input Boxes - Responsive */}
               <div className="flex justify-between gap-2 mb-6">
                 {digits.map((digit, index) => (
                   <input
@@ -155,7 +154,7 @@ export default function Verify() {
                     value={digit}
                     onChange={(e) => handleDigitChange(index, e.target.value)}
                     onKeyDown={(e) => handleKeyDown(index, e)}
-                    className="w-12 h-12 text-2xl text-center border border-[#D9D9D9] rounded-md focus:outline-none focus:ring-1 focus:ring-[#3B404C] focus:border-[#3B404C]"
+                    className="w-8 h-10 sm:w-12 text-2xl text-center border border-[#D9D9D9] rounded-md focus:outline-none focus:ring-1 focus:ring-[#3B404C] focus:border-[#3B404C]"
                     autoFocus={index === 0}
                   />
                 ))}

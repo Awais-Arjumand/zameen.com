@@ -1,10 +1,9 @@
-// components/CompanyHomeBoxesDetails.js
 "use client";
 import Image from "next/image";
 import Link from "next/link";
 import { FaBed, FaBath } from "react-icons/fa";
 import { BsRulers } from "react-icons/bs";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { CiLocationOn } from "react-icons/ci";
 import { motion } from "framer-motion";
 
@@ -26,27 +25,51 @@ const CompanyHomeBoxesDetails = ({
 }) => {
   const [isHovered, setIsHovered] = useState(false);
   const defaultImg = "/images/default-property.jpg";
-  const [imgSrc, setImgSrc] = useState(src || defaultImg);
+  const [imgSrc, setImgSrc] = useState(defaultImg);
+  const [isLoading, setIsLoading] = useState(true);
+
+  // Memoize the processed image URL
+  const processedSrc = useMemo(() => {
+    if (!src) return defaultImg;
+    try {
+      // Handle relative paths
+      if (src.startsWith('/')) {
+        return src;
+      }
+      // Handle external URLs
+      if (src.startsWith('http')) {
+        return src;
+      }
+      return defaultImg;
+    } catch {
+      return defaultImg;
+    }
+  }, [src]);
 
   useEffect(() => {
-    // Verify the image URL when component mounts
-    const verifyImage = async () => {
-      try {
-        if (!src || src === defaultImg) {
-          setImgSrc(defaultImg);
-          return;
-        }
+    if (!processedSrc) {
+      setIsLoading(false);
+      return;
+    }
 
-        const res = await fetch(src, { method: 'HEAD' });
-        if (!res.ok) throw new Error('Image not found');
-      } catch (error) {
-        console.error('Image load error:', error);
-        setImgSrc(defaultImg);
-      }
+    const img = new window.Image();
+    img.src = processedSrc;
+
+    img.onload = () => {
+      setImgSrc(processedSrc);
+      setIsLoading(false);
     };
 
-    verifyImage();
-  }, [src]);
+    img.onerror = () => {
+      setImgSrc(defaultImg);
+      setIsLoading(false);
+    };
+
+    return () => {
+      img.onload = null;
+      img.onerror = null;
+    };
+  }, [processedSrc]);
 
   const cardVariants = {
     hidden: { opacity: 0, y: 20 },
@@ -79,24 +102,34 @@ const CompanyHomeBoxesDetails = ({
       className="w-full h-fit bg-white rounded-xl shadow-md overflow-hidden border border-gray-200 hover:shadow-lg transition-all duration-300 flex flex-col"
     >
       <Link href={`/${companyName}/${id}`} className="w-full h-full">
-        <div className="relative w-full h-48 overflow-hidden">
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ duration: 0.5 }}
-            className="w-full h-full"
-          >
-            <Image
-              src={imgSrc}
-              alt={description || "Property image"}
-              fill
-              className="object-cover rounded-t-xl"
-              sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-              onError={() => setImgSrc(defaultImg)}
-              priority={false}
-              unoptimized={imgSrc.startsWith('http')} // Only optimize local images
-            />
-          </motion.div>
+        <div className="relative w-full h-48 overflow-hidden bg-gray-100">
+          {isLoading ? (
+            <div className="absolute inset-0 flex items-center justify-center">
+              <div className="w-12 h-12 border-4 border-gray-300 border-t-primary rounded-full animate-spin"></div>
+            </div>
+          ) : (
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ duration: 0.3 }}
+              className="w-full h-full"
+            >
+              <Image
+                src={imgSrc}
+                alt={description || "Property image"}
+                fill
+                className="object-cover rounded-t-xl"
+                sizes="(max-width: 640px) 100vw, (max-width: 768px) 50vw, (max-width: 1024px) 33vw, 25vw"
+                priority={false}
+                loading="lazy"
+                quality={75}
+                onError={() => {
+                  setImgSrc(defaultImg);
+                  setIsLoading(false);
+                }}
+              />
+            </motion.div>
+          )}
 
           <div className={`absolute top-2 left-2 px-3 roboto py-1 rounded text-xs font-semibold ${buyOrRent === 'For Rent' ? 'bg-gray-700 text-white' : 'bg-primary text-white'}`}>
             {buyOrRent}

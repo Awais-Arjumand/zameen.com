@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { LuBed, LuToilet } from "react-icons/lu";
@@ -9,34 +9,61 @@ import { FaWhatsapp, FaStar } from "react-icons/fa6";
 import { IoIosCall, IoIosArrowBack } from "react-icons/io";
 import { useRouter } from "next/navigation";
 import dynamic from "next/dynamic";
-import axios from "axios";
 import { useSession } from "next-auth/react";
 import apiClient from "../../../src/service/apiClient";
 
 const ImageGallery = ({ images }) => {
   const [selected, setSelected] = useState(0);
+  const [loadedIndices, setLoadedIndices] = useState(new Set());
+
+  const handleImageLoad = (index) => {
+    setLoadedIndices(prev => new Set(prev).add(index));
+  };
+
   return (
     <>
-      <div className="relative w-full h-72 md:h-96 rounded-lg overflow-hidden mb-2">
-        <Image
-          src={images[selected]}
-          alt="Property Image"
-          fill
-          className="object-cover"
-          priority
-        />
+      <div className="relative w-full h-72 md:h-96 rounded-lg overflow-hidden mb-2 bg-gray-100">
+        {images.map((img, idx) => (
+          <div 
+            key={idx}
+            className={`absolute inset-0 transition-opacity duration-300 ${selected === idx ? 'opacity-100' : 'opacity-0'}`}
+          >
+            <Image
+              src={img}
+              alt="Property Image"
+              fill
+              className="object-cover"
+              priority={idx === 0}
+              quality={80}
+              onLoadingComplete={() => handleImageLoad(idx)}
+            />
+          </div>
+        ))}
+        {!loadedIndices.has(selected) && (
+          <div className="absolute inset-0 flex items-center justify-center bg-gray-200">
+            <div className="w-12 h-12 border-4 border-gray-300 border-t-primary rounded-full animate-spin"></div>
+          </div>
+        )}
       </div>
       <div className="flex gap-2 mt-1 overflow-x-auto pb-1">
         {images.map((img, idx) => (
           <button
             key={idx}
             className={`relative w-24 h-14 rounded border-2 ${
-              selected === idx ? "border-green-600" : "border-transparent"
+              selected === idx ? 'border-primary' : 'border-transparent'
             }`}
             onClick={() => setSelected(idx)}
             type="button"
           >
-            <Image src={img} alt="thumb" fill className="object-cover rounded" />
+            <Image 
+              src={img}
+              alt="thumb"
+              fill
+              className="object-cover rounded"
+              sizes="80px"
+              loading="lazy"
+              quality={60}
+            />
           </button>
         ))}
       </div>
@@ -46,42 +73,53 @@ const ImageGallery = ({ images }) => {
 
 const MapComponent = dynamic(() => import("../components/MapComponent"), {
   ssr: false,
+  loading: () => (
+    <div className="h-96 flex items-center justify-center bg-gray-100">
+      <div className="w-12 h-12 border-4 border-gray-300 border-t-primary rounded-full animate-spin"></div>
+    </div>
+  )
 });
 
-// ✅ Receive props directly: id and company
 export default function PropertyDetail({ id, company }) {
   const [property, setProperty] = useState(null);
   const [similarProperties, setSimilarProperties] = useState([]);
+  const [loading, setLoading] = useState(true);
   const router = useRouter();
   const { data: session } = useSession();
+
+  const processImageUrls = (item) => {
+    const defaultImages = [
+      "/images/default-property.jpg",
+      "/images/default-img.png.jpg",
+      "/images/HomesBoxesImages/img1.png",
+      "/images/HomesBoxesImages/img2.png"
+    ];
+
+    const mainImage = item.image?.startsWith("http")
+      ? item.image
+      : item.image?.startsWith("/uploads/")
+      ? `https://pakistan-property-portal-backend-production.up.railway.app${item.image}`
+      : item.image || "/images/default-property.jpg";
+
+    return [mainImage, ...defaultImages];
+  };
 
   useEffect(() => {
     if (!id) return;
 
     const fetchProperty = async () => {
       try {
+        setLoading(true);
         const res = await apiClient.get(`/company-properties/${id}`);
         const item = res.data.data;
 
-        const galleryImages = [
-          item.image?.startsWith("http")
-            ? item.image
-            : item.image?.startsWith("/uploads/")
-            ? `https://pakistan-property-portal-backend-production.up.railway.app${item.image}`
-            : item.image || "/images/default-property.jpg",
-          "/images/default-property.jpg",
-          "/images/default-img.png.jpg",
-          "/images/HomesBoxesImages/img1.png",
-          "/images/HomesBoxesImages/img2.png",
-        ];
-
         const mapped = {
           id: item._id,
-          images: galleryImages,
+          images: processImageUrls(item),
           price: item.maxPrice || "Unmentioned",
           areaUnit: item.areaUnit,
-          maxPrice:item.maxPrice,
-          minPrice:item.minPrice,
+          maxPrice: item.maxPrice,
+          minPrice: item.minPrice,
           priceUnit: item.priceUnit || "",
           beds: item.beds,
           Bath: item.Bath,
@@ -100,25 +138,6 @@ export default function PropertyDetail({ id, company }) {
           rating: 4.5,
         };
 
-        // id: item._id,
-        // src: imageUrl,
-        // images: images,
-        // price: item.maxPrice || item.minPrice || "Unmentioned",
-        // priceUnit: item.priceUnit || "",
-        // beds: item.beds || 0,
-        // Bath: item.Bath || 0,
-        // location: item.location || "",
-        // Area: item.Area || "",
-        // TotalArea: item.TotalArea || "",
-        // areaUnit: item.areaUnit || "",
-        // description: item.description || "",
-        // city: item.city || "",
-        // buyOrRent: item.buyOrRent || "Buy",
-        // category: item.category || "",
-        // propertyDealerName: item.propertyDealerName || "",
-        // senderName: item.senderName || "",
-        // createdAt: item.createdAt,
-        // phone: item.phone || "",
         setProperty(mapped);
         setSimilarProperties([
           { ...mapped, id: mapped.id + "1" },
@@ -129,6 +148,7 @@ export default function PropertyDetail({ id, company }) {
         console.error("Fetch failed:", err);
         setProperty(null);
       } finally {
+        setLoading(false);
       }
     };
 
@@ -140,6 +160,13 @@ export default function PropertyDetail({ id, company }) {
     window.scrollTo(0, 0);
   };
 
+  if (loading) {
+    return (
+      <div className="w-full h-screen flex items-center justify-center pt-16">
+        <div className="w-12 h-12 border-4 border-gray-300 border-t-primary rounded-full animate-spin"></div>
+      </div>
+    );
+  }
 
   if (!property) {
     return (
@@ -154,7 +181,7 @@ export default function PropertyDetail({ id, company }) {
       <div className="max-w-full mx-auto">
         <Link
           href={`/${company}`}
-          className="flex items-center text-primary  mb-6"
+          className="flex items-center text-primary mb-6"
         >
           <IoIosArrowBack className="mr-2" /> Back to Properties
         </Link>
@@ -163,9 +190,7 @@ export default function PropertyDetail({ id, company }) {
           <ImageGallery images={property.images} />
         </div>
 
-        {/* Main Details */}
         <div className="flex flex-col md:flex-row gap-6">
-          {/* Left */}
           <div className="flex-1 bg-white rounded-lg shadow p-6">
             <div className="flex flex-wrap items-center gap-2 mb-2">
               <h1 className="w-80 text-xl md:text-2xl font-bold text-gray-900 mr-2 truncate">
@@ -222,35 +247,33 @@ export default function PropertyDetail({ id, company }) {
             </div>
           </div>
 
-          {/* Right - Dealer Info */}
-<div className="w-full md:w-80 bg-white rounded-lg shadow p-6 h-fit">
-  <div className="flex items-center gap-3 mb-4">
-    <div className="w-10 h-10 rounded-full bg-green-100 flex items-center justify-center text-primary font-bold text-lg">
-      {property.Dealer?.[0] || "D"}
-    </div>
-    <div>
-      <div className="font-semibold text-gray-900">
-        {property.Dealer}
-      </div>
-      <div className="text-xs text-gray-500">Dealer</div>
-    </div>
-  </div>
-  <div className="flex items-center gap-2 mb-2">
-    <IoIosCall className="text-primary" />
-    <span className="text-gray-700 text-sm">
-      {property.DealerPhone}
-    </span>
-  </div>
-  <Link
-    href={`https://wa.me/${property.DealerPhone}`}
-    className="flex gap-x-2 justify-center w-full mt-4 bg-primary items-center text-white py-2 rounded font-semibold text-sm"
-  >
-    <FaWhatsapp className="text-lg" /> WhatsApp
-  </Link>
-</div>
+          <div className="w-full md:w-80 bg-white rounded-lg shadow p-6 h-fit">
+            <div className="flex items-center gap-3 mb-4">
+              <div className="w-10 h-10 rounded-full bg-green-100 flex items-center justify-center text-primary font-bold text-lg">
+                {property.Dealer?.[0] || "D"}
+              </div>
+              <div>
+                <div className="font-semibold text-gray-900">
+                  {property.Dealer}
+                </div>
+                <div className="text-xs text-gray-500">Dealer</div>
+              </div>
+            </div>
+            <div className="flex items-center gap-2 mb-2">
+              <IoIosCall className="text-primary" />
+              <span className="text-gray-700 text-sm">
+                {property.DealerPhone}
+              </span>
+            </div>
+            <Link
+              href={`https://wa.me/${property.DealerPhone}`}
+              className="flex gap-x-2 justify-center w-full mt-4 bg-primary items-center text-white py-2 rounded font-semibold text-sm"
+            >
+              <FaWhatsapp className="text-lg" /> WhatsApp
+            </Link>
+          </div>
         </div>
 
-        {/* Map */}
         <div className="mt-8 bg-white rounded-lg shadow p-6">
           <div className="mb-2 font-semibold text-gray-900 text-lg">
             Location <span className="text-gray-500 text-base">({property.location})</span>
@@ -260,7 +283,6 @@ export default function PropertyDetail({ id, company }) {
           </div>
         </div>
 
-        {/* Similar Properties */}
         <div className="mt-8">
           <div className="flex justify-between items-center mb-4">
             <h3 className="text-lg font-semibold text-gray-900">Similar Properties</h3>
@@ -272,12 +294,14 @@ export default function PropertyDetail({ id, company }) {
                 className="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow duration-300 cursor-pointer border border-gray-100"
                 onClick={() => handleSimilarPropertyClick(prop.id)}
               >
-                <div className="relative h-40 w-full">
+                <div className="relative h-40 w-full bg-gray-100">
                   <Image
                     src={prop.images?.[0]}
                     alt={prop.description}
                     fill
                     className="object-cover"
+                    loading="lazy"
+                    quality={75}
                   />
                   <span className="absolute top-2 left-2 px-2 py-1 rounded text-xs font-semibold bg-primary text-white">
                     {prop.BuyOrRent}
