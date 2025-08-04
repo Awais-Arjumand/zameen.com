@@ -3,7 +3,7 @@
 import { useEffect, useState, use } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { LuBed, LuToilet } from "react-icons/lu";
+import { LuBed, LuToilet, LuImage } from "react-icons/lu";
 import { TbRulerMeasure2 } from "react-icons/tb";
 import { FaWhatsapp, FaStar } from "react-icons/fa6";
 import { IoIosCall, IoIosArrowBack } from "react-icons/io";
@@ -16,36 +16,53 @@ import NavBar from "../../../../src/app/components/NavBar/NavBar";
 // Gallery component for main image + thumbnails
 function ImageGallery({ images }) {
   const [selected, setSelected] = useState(0);
+  // Filter out any empty or undefined images
+  const validImages = images.filter(img => img && !img.includes('default-property.jpg') && !img.includes('default-img.png.jpg'));
+  
+  // If no valid images, show image icon
+  if (validImages.length === 0) {
+    return (
+      <div className="relative w-full h-72 md:h-96 rounded-lg overflow-hidden mb-2 bg-gray-100 flex items-center justify-center">
+        <div className="text-center">
+          <LuImage className="w-16 h-16 text-gray-400 mx-auto" />
+          <p className="text-gray-500 mt-2">No images available</p>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div>
       <div className="relative w-full h-72 md:h-96 rounded-lg overflow-hidden mb-2">
         <Image
-          src={images[selected]}
+          src={validImages[selected]}
           alt="Property Image"
           fill
           className="object-cover"
           priority
         />
       </div>
-      <div className="flex gap-2 mt-1 overflow-x-auto pb-1">
-        {images.map((img, idx) => (
-          <button
-            key={idx}
-            className={`relative w-24 h-14 rounded border-2 ${
-              selected === idx ? "border-green-600" : "border-transparent"
-            }`}
-            onClick={() => setSelected(idx)}
-            type="button"
-          >
-            <Image
-              src={img}
-              alt="thumb"
-              fill
-              className="object-cover rounded"
-            />
-          </button>
-        ))}
-      </div>
+      {validImages.length > 1 && (
+        <div className="flex gap-2 mt-1 overflow-x-auto pb-1">
+          {validImages.map((img, idx) => (
+            <button
+              key={idx}
+              className={`relative w-24 h-14 rounded border-2 ${
+                selected === idx ? "border-green-600" : "border-transparent"
+              }`}
+              onClick={() => setSelected(idx)}
+              type="button"
+            >
+              <Image
+                src={img}
+                alt="thumb"
+                fill
+                className="object-cover rounded"
+              />
+            </button>
+          ))}
+        </div>
+      )}
     </div>
   );
 }
@@ -69,21 +86,22 @@ export default function PropertyDetail({ params: paramsPromise }) {
     if (!params.id) return;
     const fetchProperty = async () => {
       try {
-      
         const res = await apiClient.get(`/user/${params.id}`);
         const item = res.data.data;
-        // Dummy images for gallery
-        const galleryImages = [
-          item.image?.startsWith("http")
-            ? item.image
-            : item.image?.startsWith("/uploads/")
-            ? `https://pakistan-property-portal-backend-production.up.railway.app${item.image}`
-            : item.image || "/images/default-property.jpg",
-          "/public/images/default-property.jpg",
-          "/public/images/default-img.png.jpg",
-          "/public/images/HomesBoxesImages/img1.png",
-          "/public/images/HomesBoxesImages/img2.png",
-        ];
+        // Create gallery images array with only valid images
+        const galleryImages = [];
+        
+        // Add main image if it exists
+        if (item.image) {
+          galleryImages.push(
+            item.image.startsWith("http")
+              ? item.image
+              : item.image.startsWith("/uploads/")
+              ? `https://pakistan-property-portal-backend-production.up.railway.app${item.image}`
+              : item.image
+          );
+        }
+
         const mapped = {
           id: item._id,
           images: galleryImages,
@@ -101,7 +119,7 @@ export default function PropertyDetail({ params: paramsPromise }) {
           BuyOrRent: item.buyOrRent,
           city: item.city,
           area: item.location,
-          phone:item.phone || "**********",
+          phone: item.phone || "**********",
           title: item.title || item.description,
           rating: 4.5,
         };
@@ -169,7 +187,7 @@ export default function PropertyDetail({ params: paramsPromise }) {
                   {property.title}
                 </h1>
                 <span className="bg-green-100 text-green-800 px-2 py-1 rounded text-xs font-semibold">
-                  For Sale
+                  For {property.BuyOrRent || "Sale"}
                 </span>
               </div>
               <div className="flex items-center gap-2 mb-2">
@@ -185,7 +203,7 @@ export default function PropertyDetail({ params: paramsPromise }) {
                 <span className="ml-2 text-green-600 font-semibold">
                   PKR: {property.price}{" "}
                   <span className="text-xs text-gray-400 font-normal">
-                    (Rate/Marla)
+                    {property.price === "Unmentioned" ? "" : "(Rate/Marla)"}
                   </span>
                 </span>
               </div>
@@ -292,14 +310,20 @@ export default function PropertyDetail({ params: paramsPromise }) {
                   onClick={() => handleSimilarPropertyClick(prop.id)}
                 >
                   <div className="relative h-40 w-full">
-                    <Image
-                      src={prop.images?.[0] || prop.src}
-                      alt={prop.description}
-                      fill
-                      className="object-cover"
-                    />
+                    {prop.images?.[0] ? (
+                      <Image
+                        src={prop.images[0]}
+                        alt={prop.description}
+                        fill
+                        className="object-cover"
+                      />
+                    ) : (
+                      <div className="w-full h-full bg-gray-100 flex items-center justify-center">
+                        <LuImage className="w-10 h-10 text-gray-400" />
+                      </div>
+                    )}
                     <span className="absolute top-2 left-2 bg-green-100 text-green-800 px-2 py-1 rounded text-xs font-semibold">
-                      For Sale
+                      For {prop.BuyOrRent || "Sale"}
                     </span>
                   </div>
                   <div className="p-4">
@@ -310,7 +334,7 @@ export default function PropertyDetail({ params: paramsPromise }) {
                         PKR {prop.price}
                       </span>
                       <span className="flex items-center text-yellow-400 text-xs">
-                        <FaStar className="mr-1" /> 4.5
+                        <FaStar className="mr-1" /> {prop.rating}
                       </span>
                     </div>
                     <div className="flex items-center gap-3 text-xs text-gray-500">

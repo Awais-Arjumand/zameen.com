@@ -153,8 +153,8 @@ const ContactInformation = forwardRef((props, ref) => {
     <div className="w-full bg-white rounded-xl roboto shadow-sm border border-gray-200 overflow-hidden">
       <div className="p-8">
         <div className="flex items-center gap-x-3 mb-8 pb-3 border-b border-gray-200">
-          <div className="p-2 bg-[#ddf6de] rounded-lg">
-            <IoCallOutline className="text-xl text-[#1CC323]" />
+          <div className="p-2 bg-primary rounded-lg">
+            <IoCallOutline className="text-xl text-white" />
           </div>
           <h2 className="text-2xl font-semibold text-gray-800">Contact Information</h2>
         </div>

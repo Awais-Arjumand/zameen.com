@@ -3,7 +3,7 @@
 import { useEffect, useState, useMemo } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { LuBed, LuToilet } from "react-icons/lu";
+import { LuBed, LuToilet, LuImage } from "react-icons/lu";
 import { TbRulerMeasure2 } from "react-icons/tb";
 import { FaWhatsapp, FaStar } from "react-icons/fa6";
 import { IoIosCall, IoIosArrowBack } from "react-icons/io";
@@ -16,14 +16,32 @@ const ImageGallery = ({ images }) => {
   const [selected, setSelected] = useState(0);
   const [loadedIndices, setLoadedIndices] = useState(new Set());
 
+  // Filter out any empty or undefined images
+  const validImages = useMemo(() => 
+    images.filter(img => img && !img.includes('default-property.jpg') && !img.includes('default-img.png.jpg')),
+    [images]
+  );
+
   const handleImageLoad = (index) => {
     setLoadedIndices(prev => new Set(prev).add(index));
   };
 
+  // If no valid images, show image icon
+  if (validImages.length === 0) {
+    return (
+      <div className="relative w-full h-72 md:h-96 rounded-lg overflow-hidden mb-2 bg-gray-100 flex items-center justify-center">
+        <div className="text-center">
+          <LuImage className="w-16 h-16 text-gray-400 mx-auto" />
+          <p className="text-gray-500 mt-2">No images available</p>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <>
       <div className="relative w-full h-72 md:h-96 rounded-lg overflow-hidden mb-2 bg-gray-100">
-        {images.map((img, idx) => (
+        {validImages.map((img, idx) => (
           <div 
             key={idx}
             className={`absolute inset-0 transition-opacity duration-300 ${selected === idx ? 'opacity-100' : 'opacity-0'}`}
@@ -45,28 +63,30 @@ const ImageGallery = ({ images }) => {
           </div>
         )}
       </div>
-      <div className="flex gap-2 mt-1 overflow-x-auto pb-1">
-        {images.map((img, idx) => (
-          <button
-            key={idx}
-            className={`relative w-24 h-14 rounded border-2 ${
-              selected === idx ? 'border-primary' : 'border-transparent'
-            }`}
-            onClick={() => setSelected(idx)}
-            type="button"
-          >
-            <Image 
-              src={img}
-              alt="thumb"
-              fill
-              className="object-cover rounded"
-              sizes="80px"
-              loading="lazy"
-              quality={60}
-            />
-          </button>
-        ))}
-      </div>
+      {validImages.length > 1 && (
+        <div className="flex gap-2 mt-1 overflow-x-auto pb-1">
+          {validImages.map((img, idx) => (
+            <button
+              key={idx}
+              className={`relative w-24 h-14 rounded border-2 ${
+                selected === idx ? 'border-primary' : 'border-transparent'
+              }`}
+              onClick={() => setSelected(idx)}
+              type="button"
+            >
+              <Image 
+                src={img}
+                alt="thumb"
+                fill
+                className="object-cover rounded"
+                sizes="80px"
+                loading="lazy"
+                quality={60}
+              />
+            </button>
+          ))}
+        </div>
+      )}
     </>
   );
 };
@@ -88,20 +108,13 @@ export default function PropertyDetail({ id, company }) {
   const { data: session } = useSession();
 
   const processImageUrls = (item) => {
-    const defaultImages = [
-      "/images/default-property.jpg",
-      "/images/default-img.png.jpg",
-      "/images/HomesBoxesImages/img1.png",
-      "/images/HomesBoxesImages/img2.png"
-    ];
-
     const mainImage = item.image?.startsWith("http")
       ? item.image
       : item.image?.startsWith("/uploads/")
       ? `https://pakistan-property-portal-backend-production.up.railway.app${item.image}`
-      : item.image || "/images/default-property.jpg";
+      : item.image;
 
-    return [mainImage, ...defaultImages];
+    return mainImage ? [mainImage] : [];
   };
 
   useEffect(() => {
@@ -177,7 +190,7 @@ export default function PropertyDetail({ id, company }) {
   }
 
   return (
-    <div className="w-full min-h-screen bg-[#f7f7f7] pt-16 pb-6 px-2 md:px-6 mt-16">
+    <div className="w-full min-h-screen bg-[#f7f7f7] pt-16 pb-6 px-2 md:px-6">
       <div className="max-w-full mx-auto">
         <Link
           href={`/${company}`}
@@ -193,7 +206,7 @@ export default function PropertyDetail({ id, company }) {
         <div className="flex flex-col md:flex-row gap-6">
           <div className="flex-1 bg-white rounded-lg shadow p-6">
             <div className="flex flex-wrap items-center gap-2 mb-2">
-              <h1 className="w-80 text-xl md:text-2xl font-bold text-gray-900 mr-2 truncate">
+              <h1 className="w-[700px] text-xl md:text-2xl font-bold text-gray-900 mr-2 truncate">
                 {property.title}
               </h1>
               <span className="px-2 py-1 rounded text-xs font-semibold bg-primary text-white">
@@ -242,7 +255,11 @@ export default function PropertyDetail({ id, company }) {
                 </div>
               </div>
               <div className="text-sm text-gray-700 mt-2">
-                <span className="font-semibold text-primary">Description:</span> {property.description}
+                  
+                  <span className="font-semibold text-primary flex gap-x-3 truncate w-[1000px]">Description: <h1 className="text-black">{property.description}</h1></span> 
+                <span>
+
+                  </span>
               </div>
             </div>
           </div>
@@ -295,14 +312,20 @@ export default function PropertyDetail({ id, company }) {
                 onClick={() => handleSimilarPropertyClick(prop.id)}
               >
                 <div className="relative h-40 w-full bg-gray-100">
-                  <Image
-                    src={prop.images?.[0]}
-                    alt={prop.description}
-                    fill
-                    className="object-cover"
-                    loading="lazy"
-                    quality={75}
-                  />
+                  {prop.images?.[0] ? (
+                    <Image
+                      src={prop.images[0]}
+                      alt={prop.description}
+                      fill
+                      className="object-cover"
+                      loading="lazy"
+                      quality={75}
+                    />
+                  ) : (
+                    <div className="w-full h-full flex items-center justify-center">
+                      <LuImage className="w-10 h-10 text-gray-400" />
+                    </div>
+                  )}
                   <span className="absolute top-2 left-2 px-2 py-1 rounded text-xs font-semibold bg-primary text-white">
                     {prop.BuyOrRent}
                   </span>

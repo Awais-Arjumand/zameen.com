@@ -61,7 +61,7 @@ const AdInformation = forwardRef((props, ref) => {
     <div className="w-full h-fit roboto rounded-lg bg-white px-14 py-7">
       <div className="w-full h-fit flex flex-col gap-y-5">
         <IconAndLabel
-          icon={<IoDocumentTextOutline className="text-xl text-[#1CC323]" />}
+          icon={<IoDocumentTextOutline className="text-xl text-white" />}
           label={"Ad Information"}
         />
 
