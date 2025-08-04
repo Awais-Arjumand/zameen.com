@@ -7,13 +7,14 @@ import AddNewItemChipsBox from "../AddNewItemChipsBox";
 import { BsFillHouseAddFill } from "react-icons/bs";
 import {
   FaHouseMedicalCircleExclamation,
+  FaLocationDot,
   FaMapLocation,
 } from "react-icons/fa6";
 import { BiBuildingHouse } from "react-icons/bi";
 import { TbBuildings } from "react-icons/tb";
 import { HiOutlineBuildingOffice } from "react-icons/hi2";
 import { PiBuildingOfficeBold, PiFarm, PiBuildingsBold, PiFarmLight } from "react-icons/pi";
-import { MdOutlineDoorBack } from "react-icons/md";
+import { MdLocationPin, MdOutlineDoorBack } from "react-icons/md";
 import { GiFarmTractor } from "react-icons/gi";
 import { MdFactory } from "react-icons/md";
 import {
@@ -96,7 +97,7 @@ const LocationAndCity = forwardRef((props, ref) => {
     <div className="w-full h-fit roboto rounded-lg bg-white px-14 py-7">
       <div className="w-full h-fit flex flex-col gap-x-14 ">
         <IconAndLabel
-          icon={<CiLocationOn className="text-xl text-[#1CC323]" />}
+          icon={<MdLocationPin className="text-xl text-white text-bold" />}
           label={"Location and Purpose"}
         />
         <div className="w-fit h-fit flex flex-col gap-y-3">

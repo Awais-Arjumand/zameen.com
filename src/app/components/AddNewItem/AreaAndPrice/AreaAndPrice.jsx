@@ -1,9 +1,6 @@
 "use client";
 import React, { forwardRef, useImperativeHandle, useState } from "react";
 import IconAndLabel from "../LocationAndCity/IconAndLabel";
-import { IoPricetagOutline } from "react-icons/io5";
-import SelectionIconOrLabel from "../LocationAndCity/SelectionIconOrLabel";
-import { TbChartArea } from "react-icons/tb";
 import { RiCoinsLine } from "react-icons/ri";
 
 import Select from "react-select";
@@ -72,7 +69,7 @@ const AreaAndPrice = forwardRef((props, ref) => {
     <div className="w-full h-fit rounded-lg roboto bg-white px-14 py-7">
       <div className="w-full h-fit flex flex-col gap-y-5">
         <IconAndLabel
-          icon={<RiCoinsLine className="text-xl text-[#1CC323]" />}
+          icon={<RiCoinsLine className="text-xl text-white" />}
           label={"Area and Price"}
         />
 

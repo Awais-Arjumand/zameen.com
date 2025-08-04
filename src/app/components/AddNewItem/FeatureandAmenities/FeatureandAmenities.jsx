@@ -57,7 +57,7 @@ const FeatureandAmenities = forwardRef((props, ref) => {
     <div className="w-full h-fit roboto rounded-lg bg-white px-14 py-7">
       <div className="w-full h-fit flex flex-col gap-y-5">
         <IconAndLabel
-          icon={<IoHomeOutline className="text-xl text-[#1CC323]" />}
+          icon={<IoHomeOutline className="text-xl text-white" />}
           label={"Feature and Amenities"}
         />
         <div className="w-fit h-fit flex flex-col gap-y-3">

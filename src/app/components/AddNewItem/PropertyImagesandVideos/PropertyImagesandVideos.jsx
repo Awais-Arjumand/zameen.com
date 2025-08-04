@@ -66,7 +66,7 @@ const PropertyImagesandVideos = forwardRef((props, ref) => {
     <div className="w-full h-fit roboto rounded-lg bg-white px-14 py-7">
       <div className="w-full h-fit flex flex-col gap-y-5">
         <IconAndLabel
-          icon={<LuImage className="text-xl text-[#1CC323]" />}
+          icon={<LuImage className="text-xl text-white" />}
           label={"Property Images and Videos"}
         />
         <div className="w-full h-fit flex flex-col">
@@ -79,20 +79,20 @@ const PropertyImagesandVideos = forwardRef((props, ref) => {
                   type="button"
                   onClick={handleImageClick}
                   disabled={isImageDisabled}
-                  className={`w-fit h-fit p-2 px-3 cursor-pointer transition-all duration-300 rounded-full flex gap-x-2 justify-center items-center ${
+                  className={`w-fit h-fit p-2 px-3 cursor-pointer transition-all duration-300 rounded-lg flex gap-x-2 justify-center items-center ${
                     isImageDisabled
                       ? "bg-gray-300 cursor-not-allowed"
-                      : "bg-[#ddf6de] hover:bg-gray-300"
+                      : "bg-primary hover:bg-gray-300"
                   }`}
                 >
                   <IoMdImages
                     className={`text-2xl ${
-                      isImageDisabled ? "text-gray-500" : "text-[#1CC323]"
+                      isImageDisabled ? "text-gray-500" : "text-white"
                     }`}
                   />
                   <span
                     className={`${
-                      isImageDisabled ? "text-gray-500" : "text-[#1CC323]"
+                      isImageDisabled ? "text-gray-500" : "text-white"
                     }`}
                   >
                     {isImageDisabled ? "Max 5 Images" : "Upload Image"}
@@ -122,7 +122,7 @@ const PropertyImagesandVideos = forwardRef((props, ref) => {
                     />
                     <button
                       onClick={() => removeImage(index)}
-                      className="absolute top-1 right-1 cursor-pointer bg-red-600 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs"
+                      className="absolute top-1 right-1 cursor-pointer bg-red-600 text-white rounded-lg w-5 h-5 flex items-center justify-center text-xs"
                     >
                       ×
                     </button>
@@ -145,20 +145,20 @@ const PropertyImagesandVideos = forwardRef((props, ref) => {
                   type="button"
                   onClick={handleVideoClick}
                   disabled={isVideoDisabled}
-                  className={`w-fit h-fit p-2 px-3 cursor-pointer transition-all duration-300 rounded-full flex gap-x-2 justify-center items-center ${
+                  className={`w-fit h-fit p-2 px-3 cursor-pointer transition-all duration-300 rounded-lg flex gap-x-2 justify-center items-center ${
                     isVideoDisabled
                       ? "bg-gray-300 cursor-not-allowed"
-                      : "bg-[#ddf6de] hover:bg-gray-300"
+                      : "bg-primary hover:bg-gray-300"
                   }`}
                 >
                   <MdOutlineVideoCall
                     className={`text-2xl ${
-                      isVideoDisabled ? "text-gray-500" : "text-[#1CC323]"
+                      isVideoDisabled ? "text-gray-500" : "text-white"
                     }`}
                   />
                   <span
                     className={`${
-                      isVideoDisabled ? "text-gray-500" : "text-[#1CC323]"
+                      isVideoDisabled ? "text-gray-500" : "text-white"
                     }`}
                   >
                     {isVideoDisabled ? "1 Video Uploaded" : "Upload Video"}
