@@ -45,10 +45,12 @@ const Page = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [companyType, setCompanyType] = useState(null);
   const [showForm, setShowForm] = useState(false);
+  const [containerHeight, setContainerHeight] = useState("100vh");
 
   const handleCompanyTypeChange = (type) => {
     setCompanyType(type);
     setShowForm(true);
+    setContainerHeight("fit-content");
   };
 
   const handleSubmit = async () => {
@@ -170,7 +172,10 @@ const Page = () => {
   return (
     <>
       <NewCompanyNavbar />
-      <div className="w-full h-fit flex flex-col roboto gap-y-8 px-4 md:px-20 py-10 mt-16 bg-[#f6f7fb]">
+      <div 
+        className="w-full flex flex-col roboto gap-y-8 px-4 md:px-20 py-10 mt-16 bg-[#f6f7fb]"
+        style={{ minHeight: containerHeight }}
+      >
         <Link
           href={`/${companyName}/dealer-panel`}
           className="flex items-center gap-x-2 text-primary hover:text-primary-dark transition-colors"
