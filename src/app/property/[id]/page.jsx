@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, use } from "react";
+import { use, useEffect, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { LuBed, LuToilet, LuImage } from "react-icons/lu";
@@ -13,13 +13,10 @@ import Loader from "../../auth/loading";
 import apiClient from "../../../../src/service/apiClient";
 import NavBar from "../../../../src/app/components/NavBar/NavBar";
 
-// Gallery component for main image + thumbnails
 function ImageGallery({ images }) {
   const [selected, setSelected] = useState(0);
-  // Filter out any empty or undefined images
   const validImages = images.filter(img => img && !img.includes('default-property.jpg') && !img.includes('default-img.png.jpg'));
   
-  // If no valid images, show image icon
   if (validImages.length === 0) {
     return (
       <div className="relative w-full h-72 md:h-96 rounded-lg overflow-hidden mb-2 bg-gray-100 flex items-center justify-center">
@@ -79,6 +76,7 @@ export default function PropertyDetail({ params: paramsPromise }) {
   const [property, setProperty] = useState(null);
   const [similarProperties, setSimilarProperties] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [similarLoading, setSimilarLoading] = useState(false);
   const router = useRouter();
   const params = use(paramsPromise || getParams());
 
@@ -88,10 +86,8 @@ export default function PropertyDetail({ params: paramsPromise }) {
       try {
         const res = await apiClient.get(`/user/${params.id}`);
         const item = res.data.data;
-        // Create gallery images array with only valid images
         const galleryImages = [];
         
-        // Add main image if it exists
         if (item.image) {
           galleryImages.push(
             item.image.startsWith("http")
@@ -124,11 +120,6 @@ export default function PropertyDetail({ params: paramsPromise }) {
           rating: 4.5,
         };
         setProperty(mapped);
-        setSimilarProperties([
-          { ...mapped, id: mapped.id + "1" },
-          { ...mapped, id: mapped.id + "2" },
-          { ...mapped, id: mapped.id + "3" },
-        ]);
       } catch (err) {
         setProperty(null);
       } finally {
@@ -137,6 +128,57 @@ export default function PropertyDetail({ params: paramsPromise }) {
     };
     fetchProperty();
   }, [params.id]);
+
+  useEffect(() => {
+    const fetchSimilarProperties = async () => {
+      if (!property) return;
+      setSimilarLoading(true);
+      try {
+        const res = await apiClient.get(`/user/${params.id}/similar`);
+        const similar = res.data.data.map(item => {
+          const galleryImages = [];
+          if (item.image) {
+            galleryImages.push(
+              item.image.startsWith("http")
+                ? item.image
+                : item.image.startsWith("/uploads/")
+                ? `https://pakistan-property-portal-backend-production.up.railway.app${item.image}`
+                : item.image
+            );
+          }
+          
+          return {
+            id: item._id,
+            images: galleryImages,
+            price: item.price || "Unmentioned",
+            areaUnit: item.areaUnit,
+            beds: item.beds,
+            Bath: item.Bath,
+            location: item.location,
+            Dealer: item.propertyDealerName || "-",
+            Posted: new Date(item.createdAt).toLocaleDateString(),
+            Area: item.Area,
+            TotalArea: item.TotalArea,
+            description: item.description,
+            BuyOrRent: item.buyOrRent,
+            city: item.city,
+            title: item.title || item.description,
+            rating: 4.5,
+          };
+        });
+        setSimilarProperties(similar);
+      } catch (err) {
+        console.error("Failed to fetch similar properties:", err);
+        setSimilarProperties([]);
+      } finally {
+        setSimilarLoading(false);
+      }
+    };
+    
+    if (property) {
+      fetchSimilarProperties();
+    }
+  }, [property, params.id]);
 
   const handleSimilarPropertyClick = (id) => {
     router.push(`/property/${id}`);
@@ -174,13 +216,12 @@ export default function PropertyDetail({ params: paramsPromise }) {
           >
             <IoIosArrowBack className="mr-2" /> Back to Properties
           </Link>
-          {/* Image Gallery */}
+          
           <div className="bg-white rounded-lg shadow p-4 mb-6">
             <ImageGallery images={property.images} />
           </div>
-          {/* Property Info & Contact */}
+          
           <div className="flex flex-col md:flex-row gap-6">
-            {/* Info */}
             <div className="flex-1 bg-white rounded-lg shadow p-6">
               <div className="flex flex-wrap items-center gap-2 mb-2">
                 <h1 className="text-xl md:text-2xl font-bold text-gray-900 mr-2">
@@ -191,7 +232,6 @@ export default function PropertyDetail({ params: paramsPromise }) {
                 </span>
               </div>
               <div className="flex items-center gap-2 mb-2">
-                {/* Rating stars */}
                 {[1, 2, 3, 4, 5].map((i) => (
                   <FaStar
                     key={i}
@@ -220,7 +260,7 @@ export default function PropertyDetail({ params: paramsPromise }) {
                   {property.areaUnit}
                 </div>
               </div>
-              {/* Property Details */}
+              
               <div className="bg-gray-50 rounded p-4 mb-2">
                 <div className="flex flex-wrap gap-4 mb-2">
                   <div className="text-xs text-gray-500">
@@ -250,7 +290,7 @@ export default function PropertyDetail({ params: paramsPromise }) {
                 </div>
               </div>
             </div>
-            {/* Contact Info */}
+            
             <div className="w-full md:w-80 bg-white rounded-lg shadow p-6 h-fit">
               <div className="flex items-center gap-3 mb-4">
                 <div className="w-10 h-10 rounded-full bg-green-100 flex items-center justify-center text-green-700 font-bold text-lg">
@@ -277,7 +317,7 @@ export default function PropertyDetail({ params: paramsPromise }) {
               </Link>
             </div>
           </div>
-          {/* Map Section */}
+          
           <div className="mt-8 bg-white rounded-lg shadow p-6">
             <div className="mb-2 font-semibold text-gray-900 text-lg">
               Location{" "}
@@ -292,67 +332,90 @@ export default function PropertyDetail({ params: paramsPromise }) {
               />
             </div>
           </div>
-          {/* Similar Properties */}
+          
           <div className="mt-8">
             <div className="flex justify-between items-center mb-4">
               <h3 className="text-lg font-semibold text-gray-900">
                 Similar Properties
               </h3>
-              <button className="text-green-600 text-sm font-semibold hover:underline">
-                View All
-              </button>
             </div>
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-              {similarProperties.map((prop) => (
-                <div
-                  key={prop.id}
-                  className="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow duration-300 cursor-pointer border border-gray-100"
-                  onClick={() => handleSimilarPropertyClick(prop.id)}
-                >
-                  <div className="relative h-40 w-full">
-                    {prop.images?.[0] ? (
-                      <Image
-                        src={prop.images[0]}
-                        alt={prop.description}
-                        fill
-                        className="object-cover"
-                      />
-                    ) : (
-                      <div className="w-full h-full bg-gray-100 flex items-center justify-center">
-                        <LuImage className="w-10 h-10 text-gray-400" />
+            
+            {similarLoading ? (
+              <div className="flex justify-center py-8">
+                <Loader />
+              </div>
+            ) : similarProperties.length > 0 ? (
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                {similarProperties.map((prop) => (
+                  <div
+                    key={prop.id}
+                    className="bg-white rounded-xl shadow-md overflow-hidden hover:shadow-lg transition-all duration-300 cursor-pointer border border-gray-100 hover:border-green-500 group"
+                    onClick={() => handleSimilarPropertyClick(prop.id)}
+                  >
+                    <div className="relative h-48 w-full overflow-hidden">
+                      {prop.images && prop.images.length > 0 ? (
+                        <Image
+                          src={prop.images[0]}
+                          alt={prop.description}
+                          fill
+                          className="object-cover group-hover:scale-110 transition-transform duration-300"
+                        />
+                      ) : (
+                        <div className="w-full h-full bg-gray-100 flex items-center justify-center">
+                          <LuImage className="w-12 h-12 text-gray-400" />
+                        </div>
+                      )}
+                      <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                      <span className="absolute top-3 left-3 bg-green-500 text-white px-3 py-1 rounded-full text-xs font-semibold shadow-md">
+                        For {prop.BuyOrRent || "Sale"}
+                      </span>
+                      <div className="absolute bottom-3 right-3 bg-white/90 backdrop-blur rounded-full px-2 py-1 flex items-center gap-1">
+                        <FaStar className="text-yellow-400 text-xs" />
+                        <span className="text-gray-800 text-xs font-medium">{prop.rating}</span>
                       </div>
-                    )}
-                    <span className="absolute top-2 left-2 bg-green-100 text-green-800 px-2 py-1 rounded text-xs font-semibold">
-                      For {prop.BuyOrRent || "Sale"}
-                    </span>
-                  </div>
-                  <div className="p-4">
-                    <h4 className="text-base font-semibold mb-1">{prop.title}</h4>
-                    <p className="text-gray-600 text-xs mb-2">{prop.location}</p>
-                    <div className="flex items-center justify-between mb-2">
-                      <span className="text-green-600 font-medium text-sm">
-                        PKR {prop.price}
-                      </span>
-                      <span className="flex items-center text-yellow-400 text-xs">
-                        <FaStar className="mr-1" /> {prop.rating}
-                      </span>
                     </div>
-                    <div className="flex items-center gap-3 text-xs text-gray-500">
-                      <span className="flex items-center">
-                        <LuBed className="mr-1" /> {prop.beds}
-                      </span>
-                      <span className="flex items-center">
-                        <LuToilet className="mr-1" /> {prop.Bath}
-                      </span>
-                      <span className="flex items-center">
-                        <TbRulerMeasure2 className="mr-1" /> {prop.Area}{" "}
-                        {prop.areaUnit}
-                      </span>
+                    <div className="p-4">
+                      <div className="mb-3">
+                        <h4 className="text-lg font-semibold text-gray-900 mb-1 line-clamp-1">{prop.title}</h4>
+                        <p className="text-gray-600 text-sm flex items-center gap-1">
+                          <svg className="w-4 h-4 text-gray-400" fill="none" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" viewBox="0 0 24 24" stroke="currentColor">
+                            <path d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                            <path d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                          </svg>
+                          {prop.location}
+                        </p>
+                      </div>
+                      <div className="flex justify-between items-center mb-3 pb-3 border-b border-gray-100">
+                        <div className="flex items-baseline gap-1">
+                          <span className="text-green-600 font-bold text-lg">PKR {prop.price}</span>
+                          {prop.price !== "Unmentioned" && (
+                            <span className="text-xs text-gray-400">/Marla</span>
+                          )}
+                        </div>
+                      </div>
+                      <div className="grid grid-cols-3 gap-2 text-sm text-gray-600">
+                        <div className="flex items-center gap-1.5 bg-gray-50 rounded-lg p-2">
+                          <LuBed className="text-gray-400" />
+                          <span>{prop.beds} Beds</span>
+                        </div>
+                        <div className="flex items-center gap-1.5 bg-gray-50 rounded-lg p-2">
+                          <LuToilet className="text-gray-400" />
+                          <span>{prop.Bath} Bath</span>
+                        </div>
+                        <div className="flex items-center gap-1.5 bg-gray-50 rounded-lg p-2">
+                          <TbRulerMeasure2 className="text-gray-400" />
+                          <span>{prop.Area} {prop.areaUnit}</span>
+                        </div>
+                      </div>
                     </div>
                   </div>
-                </div>
-              ))}
-            </div>
+                ))}
+              </div>
+            ) : (
+              <div className="text-center py-8 text-gray-500">
+                No similar properties found
+              </div>
+            )}
           </div>
         </div>
       </div>

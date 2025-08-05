@@ -17,13 +17,19 @@ const ImageGallery = ({ images }) => {
   const [loadedIndices, setLoadedIndices] = useState(new Set());
 
   // Filter out any empty or undefined images
-  const validImages = useMemo(() => 
-    images.filter(img => img && !img.includes('default-property.jpg') && !img.includes('default-img.png.jpg')),
+  const validImages = useMemo(
+    () =>
+      images.filter(
+        (img) =>
+          img &&
+          !img.includes("default-property.jpg") &&
+          !img.includes("default-img.png.jpg")
+      ),
     [images]
   );
 
   const handleImageLoad = (index) => {
-    setLoadedIndices(prev => new Set(prev).add(index));
+    setLoadedIndices((prev) => new Set(prev).add(index));
   };
 
   // If no valid images, show image icon
@@ -42,9 +48,11 @@ const ImageGallery = ({ images }) => {
     <>
       <div className="relative w-full h-72 md:h-96 rounded-lg overflow-hidden mb-2 bg-gray-100">
         {validImages.map((img, idx) => (
-          <div 
+          <div
             key={idx}
-            className={`absolute inset-0 transition-opacity duration-300 ${selected === idx ? 'opacity-100' : 'opacity-0'}`}
+            className={`absolute inset-0 transition-opacity duration-300 ${
+              selected === idx ? "opacity-100" : "opacity-0"
+            }`}
           >
             <Image
               src={img}
@@ -69,12 +77,12 @@ const ImageGallery = ({ images }) => {
             <button
               key={idx}
               className={`relative w-24 h-14 rounded border-2 ${
-                selected === idx ? 'border-primary' : 'border-transparent'
+                selected === idx ? "border-primary" : "border-transparent"
               }`}
               onClick={() => setSelected(idx)}
               type="button"
             >
-              <Image 
+              <Image
                 src={img}
                 alt="thumb"
                 fill
@@ -97,13 +105,14 @@ const MapComponent = dynamic(() => import("../components/MapComponent"), {
     <div className="h-96 flex items-center justify-center bg-gray-100">
       <div className="w-12 h-12 border-4 border-gray-300 border-t-primary rounded-full animate-spin"></div>
     </div>
-  )
+  ),
 });
 
 export default function PropertyDetail({ id, company }) {
   const [property, setProperty] = useState(null);
   const [similarProperties, setSimilarProperties] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [similarLoading, setSimilarLoading] = useState(false);
   const router = useRouter();
   const { data: session } = useSession();
 
@@ -116,6 +125,57 @@ export default function PropertyDetail({ id, company }) {
 
     return mainImage ? [mainImage] : [];
   };
+
+  useEffect(() => {
+    const fetchSimilarProperties = async () => {
+      if (!id || !property) return;
+
+      try {
+        setSimilarLoading(true);
+        const res = await apiClient.get(`/company-properties/${id}/similar`);
+        const similar = res.data.data.map((item) => {
+          const images = [];
+          if (item.image) {
+            const imageUrl = item.image.startsWith("http")
+              ? item.image
+              : item.image.startsWith("/uploads/")
+              ? `https://pakistan-property-portal-backend-production.up.railway.app${item.image}`
+              : item.image;
+            images.push(imageUrl);
+          }
+
+          return {
+            id: item._id,
+            images: images,
+            price: item.maxPrice || "Unmentioned",
+            areaUnit: item.areaUnit,
+            beds: item.beds,
+            Bath: item.Bath,
+            location: item.location,
+            Dealer: item.propertyDealerName || "-",
+            Posted: new Date(item.createdAt).toLocaleDateString(),
+            Area: item.Area,
+            TotalArea: item.TotalArea,
+            description: item.description,
+            BuyOrRent: item.buyOrRent,
+            city: item.city,
+            title: item.title || item.description,
+            rating: 4.5,
+          };
+        });
+        setSimilarProperties(similar);
+      } catch (err) {
+        console.error("Failed to fetch similar properties:", err);
+        setSimilarProperties([]);
+      } finally {
+        setSimilarLoading(false);
+      }
+    };
+
+    if (property) {
+      fetchSimilarProperties();
+    }
+  }, [id, property]);
 
   useEffect(() => {
     if (!id) return;
@@ -152,11 +212,6 @@ export default function PropertyDetail({ id, company }) {
         };
 
         setProperty(mapped);
-        setSimilarProperties([
-          { ...mapped, id: mapped.id + "1" },
-          { ...mapped, id: mapped.id + "2" },
-          { ...mapped, id: mapped.id + "3" },
-        ]);
       } catch (err) {
         console.error("Fetch failed:", err);
         setProperty(null);
@@ -190,7 +245,7 @@ export default function PropertyDetail({ id, company }) {
   }
 
   return (
-    <div className="w-full min-h-screen bg-[#f7f7f7] pt-16 pb-6 px-2 md:px-6">
+    <div className="w-full min-h-screen bg-[#f7f7f7] pt-16 pb-6 px-2 md:px-6 mt-10">
       <div className="max-w-full mx-auto">
         <Link
           href={`/${company}`}
@@ -224,7 +279,8 @@ export default function PropertyDetail({ id, company }) {
                 />
               ))}
               <span className="ml-2 text-primary font-semibold">
-                PKR: {property.minPrice} - {property.maxPrice} {property.priceUnit}
+                PKR: {property.minPrice} - {property.maxPrice}{" "}
+                {property.priceUnit}
               </span>
             </div>
 
@@ -238,28 +294,38 @@ export default function PropertyDetail({ id, company }) {
                 <LuToilet className="mr-1" /> {property.Bath} Bathrooms
               </div>
               <div className="flex items-center text-gray-700 text-sm">
-                <TbRulerMeasure2 className="mr-1" /> {property.Area} {property.areaUnit}
+                <TbRulerMeasure2 className="mr-1" /> {property.Area}{" "}
+                {property.areaUnit}
               </div>
             </div>
 
             <div className="bg-gray-50 rounded p-4 mb-2">
               <div className="flex flex-wrap gap-4 mb-2 text-xs text-gray-500">
                 <div>
-                  Total Area: <span className="font-semibold text-gray-700">{property.Area} {property.areaUnit}</span>
+                  Total Area:{" "}
+                  <span className="font-semibold text-gray-700">
+                    {property.Area} {property.areaUnit}
+                  </span>
                 </div>
                 <div>
-                  Dealer Name: <span className="font-semibold text-gray-700">{property.Dealer}</span>
+                  Dealer Name:{" "}
+                  <span className="font-semibold text-gray-700">
+                    {property.Dealer}
+                  </span>
                 </div>
                 <div>
-                  Posted: <span className="font-semibold text-gray-700">{property.Posted}</span>
+                  Posted:{" "}
+                  <span className="font-semibold text-gray-700">
+                    {property.Posted}
+                  </span>
                 </div>
               </div>
               <div className="text-sm text-gray-700 mt-2">
-                  
-                  <span className="font-semibold text-primary flex gap-x-3 truncate w-[1000px]">Description: <h1 className="text-black">{property.description}</h1></span> 
-                <span>
-
-                  </span>
+                <span className="font-semibold text-primary flex gap-x-3 truncate w-[1000px]">
+                  Description:{" "}
+                  <h1 className="text-black">{property.description}</h1>
+                </span>
+                <span></span>
               </div>
             </div>
           </div>
@@ -293,71 +359,119 @@ export default function PropertyDetail({ id, company }) {
 
         <div className="mt-8 bg-white rounded-lg shadow p-6">
           <div className="mb-2 font-semibold text-gray-900 text-lg">
-            Location <span className="text-gray-500 text-base">({property.location})</span>
+            Location{" "}
+            <span className="text-gray-500 text-base">
+              ({property.location})
+            </span>
           </div>
           <div className="mt-2 h-96 bg-gray-100 rounded flex items-center justify-center">
-            <MapComponent city={property.city} description={property.description} />
+            <MapComponent
+              city={property.city}
+              description={property.description}
+            />
           </div>
         </div>
 
         <div className="mt-8">
           <div className="flex justify-between items-center mb-4">
-            <h3 className="text-lg font-semibold text-gray-900">Similar Properties</h3>
+            <h3 className="text-lg font-semibold text-gray-900">
+              Similar Properties
+            </h3>
           </div>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-            {similarProperties.map((prop) => (
-              <div
-                key={prop.id}
-                className="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow duration-300 cursor-pointer border border-gray-100"
-                onClick={() => handleSimilarPropertyClick(prop.id)}
-              >
-                <div className="relative h-40 w-full bg-gray-100">
-                  {prop.images?.[0] ? (
-                    <Image
-                      src={prop.images[0]}
-                      alt={prop.description}
-                      fill
-                      className="object-cover"
-                      loading="lazy"
-                      quality={75}
-                    />
-                  ) : (
-                    <div className="w-full h-full flex items-center justify-center">
-                      <LuImage className="w-10 h-10 text-gray-400" />
+          {similarLoading ? (
+            <div className="flex justify-center py-8">
+              <div className="w-12 h-12 border-4 border-gray-300 border-t-primary rounded-full animate-spin"></div>
+            </div>
+          ) : similarProperties.length > 0 ? (
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+              {similarProperties.map((prop) => (
+                <div
+                  key={prop.id}
+                  className="bg-white rounded-xl shadow-md overflow-hidden hover:shadow-lg transition-all duration-300 cursor-pointer border border-gray-100 hover:border-primary group"
+                  onClick={() => handleSimilarPropertyClick(prop.id)}
+                >
+                  <div className="relative h-48 w-full overflow-hidden">
+                    {prop.images && prop.images.length > 0 ? (
+                      <Image
+                        src={prop.images[0]}
+                        alt={prop.description}
+                        fill
+                        className="object-cover group-hover:scale-110 transition-transform duration-300"
+                        loading="lazy"
+                        quality={75}
+                      />
+                    ) : (
+                      <div className="w-full h-full bg-gray-100 flex items-center justify-center">
+                        <LuImage className="w-12 h-12 text-gray-400" />
+                      </div>
+                    )}
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                    <span className="absolute top-3 left-3 bg-primary text-white px-3 py-1 rounded-full text-xs font-semibold shadow-md">
+                      {prop.BuyOrRent}
+                    </span>
+                    <div className="absolute bottom-3 right-3 bg-white/90 backdrop-blur rounded-full px-2 py-1 flex items-center gap-1">
+                      <FaStar className="text-yellow-400 text-xs" />
+                      <span className="text-gray-800 text-xs font-medium">
+                        {prop.rating}
+                      </span>
                     </div>
-                  )}
-                  <span className="absolute top-2 left-2 px-2 py-1 rounded text-xs font-semibold bg-primary text-white">
-                    {prop.BuyOrRent}
-                  </span>
-                </div>
-                <div className="p-4">
-                  <h4 className="text-base font-semibold mb-1 w-80 truncate">
-                    {prop.title}
-                  </h4>
-                  <p className="text-gray-600 text-xs mb-2">{prop.location}</p>
-                  <div className="flex items-center justify-between mb-2">
-                    <span className="text-primary font-medium text-sm">
-                      PKR {prop.price}
-                    </span>
-                    <span className="flex items-center text-yellow-400 text-xs">
-                      <FaStar className="mr-1" /> 4.5
-                    </span>
                   </div>
-                  <div className="flex items-center gap-3 text-xs text-gray-500">
-                    <span className="flex items-center">
-                      <LuBed className="mr-1" /> {prop.beds}
-                    </span>
-                    <span className="flex items-center">
-                      <LuToilet className="mr-1" /> {prop.Bath}
-                    </span>
-                    <span className="flex items-center">
-                      <TbRulerMeasure2 className="mr-1" /> {prop.Area} {prop.areaUnit}
-                    </span>
+                  <div className="p-4">
+                    <div className="mb-3">
+                      <h4 className="text-lg font-semibold text-gray-900 mb-1 line-clamp-1">
+                        {prop.title}
+                      </h4>
+                      <p className="text-gray-600 text-sm flex items-center gap-1">
+                        <svg
+                          className="w-4 h-4 text-gray-400"
+                          fill="none"
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth="2"
+                          viewBox="0 0 24 24"
+                          stroke="currentColor"
+                        >
+                          <path d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                          <path d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                        </svg>
+                        {prop.location} - {prop.city}
+                      </p>
+                    </div>
+                    <div className="flex justify-between items-center mb-3 pb-3 border-b border-gray-100">
+                      <div className="flex items-baseline gap-1">
+                        <span className="text-primary font-bold text-lg">
+                          PKR {prop.price}
+                        </span>
+                        {prop.price !== "Unmentioned" && (
+                          <span className="text-xs text-gray-400">/Marla</span>
+                        )}
+                      </div>
+                    </div>
+                    <div className="grid grid-cols-3 gap-2 text-sm text-gray-600">
+                      <div className="flex items-center gap-1.5 bg-gray-50 rounded-lg p-2">
+                        <LuBed className="text-gray-400" />
+                        <span>{prop.beds} Beds</span>
+                      </div>
+                      <div className="flex items-center gap-1.5 bg-gray-50 rounded-lg p-2">
+                        <LuToilet className="text-gray-400" />
+                        <span>{prop.Bath} Bath</span>
+                      </div>
+                      <div className="flex items-center gap-1.5 bg-gray-50 rounded-lg p-2">
+                        <TbRulerMeasure2 className="text-gray-400" />
+                        <span>
+                          {prop.Area} {prop.areaUnit}
+                        </span>
+                      </div>
+                    </div>
                   </div>
                 </div>
-              </div>
-            ))}
-          </div>
+              ))}
+            </div>
+          ) : (
+            <div className="text-center py-8 text-gray-500">
+              No similar properties found
+            </div>
+          )}
         </div>
       </div>
     </div>
