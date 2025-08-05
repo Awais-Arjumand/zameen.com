@@ -75,16 +75,23 @@ export default function DealerPropertyTable({
     setDeletingId(id);
     try {
       let endpoint;
-      if (propertyToDelete.status === "company-website") {
-        endpoint = `/company-properties/${id}`;
-      } else if (propertyToDelete.status === "private") {
-        endpoint = `/private-properties/${id}`;
-      } else {
-        endpoint = `/user/${id}`;
+      // Check the status of the property to determine the correct endpoint
+      switch (propertyToDelete.status) {
+        case 'company-website':
+          endpoint = `/company-properties/${id}`;
+          break;
+        case 'private':
+          endpoint = `/private-properties/${id}`;
+          break;
+        case 'public':
+        default:
+          endpoint = `/user/${id}`;
+          break;
       }
 
-      // await axios.delete(endpoint);
+      console.log('Deleting from endpoint:', endpoint); // Debug log
       await apiClient.delete(endpoint);
+      
       router.refresh();
       if (onDelete) {
         onDelete();
@@ -170,13 +177,21 @@ export default function DealerPropertyTable({
 
     try {
       let endpoint;
-      if (selectedProperty.status === "company-website" || formData.status === "company-website") {
-        endpoint = `/company-properties/${selectedProperty._id}`;
-        formData.propertyDealerName = companyName;
-      } else if (selectedProperty.status === "private" || formData.status === "private") {
-        endpoint = `/private-properties/${selectedProperty._id}`;
-      } else {
-        endpoint = `/user/${selectedProperty._id}`;
+      // Determine endpoint based on the new status in formData
+      switch (formData.status) {
+        case 'company-website':
+          endpoint = `/company-properties/${selectedProperty._id}`;
+          formData.propertyDealerName = companyName;
+          break;
+        case 'private':
+          endpoint = `/private-properties/${selectedProperty._id}`;
+          break;
+        case 'public':
+          endpoint = `/user/${selectedProperty._id}`;
+          break;
+        default:
+          endpoint = `/user/${selectedProperty._id}`;
+          break;
       }
 
       // Prepare the payload with proper numeric values
@@ -186,7 +201,9 @@ export default function DealerPropertyTable({
         Bath: formData.Bath ? parseInt(formData.Bath) : 0,
       };
 
-      // await axios.patch(endpoint, payload);
+      console.log('Updating property at endpoint:', endpoint); // Debug log
+      console.log('Payload:', payload); // Debug log
+      
       await apiClient.patch(endpoint, payload);
       router.refresh();
       handleCloseModal();

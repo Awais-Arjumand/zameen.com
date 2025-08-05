@@ -1,14 +1,10 @@
 "use client";
 import React, { forwardRef, useImperativeHandle, useState } from "react";
 import IconAndLabel from "../LocationAndCity/IconAndLabel";
-import { CiCircleCheck, CiLocationOn } from "react-icons/ci";
-import SelectionIconOrLabel from "../LocationAndCity/SelectionIconOrLabel";
 import AddNewItemChipsBox from "../AddNewItemChipsBox";
 import { BsFillHouseAddFill } from "react-icons/bs";
 import {
   FaHouseMedicalCircleExclamation,
-  FaLocationDot,
-  FaMapLocation,
 } from "react-icons/fa6";
 import { BiBuildingHouse } from "react-icons/bi";
 import { TbBuildings } from "react-icons/tb";

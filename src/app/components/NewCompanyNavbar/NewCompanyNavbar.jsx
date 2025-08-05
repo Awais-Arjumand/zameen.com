@@ -50,8 +50,9 @@ const NewCompanyNavbar = () => {
     const fetchData = async () => {
       try {
         if (session?.user?.phone) {
-    
-          const res = await apiClient.get(`/users/${encodeURIComponent(session.user.phone)}`);
+          const res = await apiClient.get(
+            `/users/${encodeURIComponent(session.user.phone)}`
+          );
           const data = res.data.data;
           setUserData(data);
           setFullName(data.fullName || "");
@@ -97,23 +98,26 @@ const NewCompanyNavbar = () => {
       formData.append("phone", phone);
       formData.append("logoColor", logoColor);
 
-      
-      const response = await apiClient.patch(`/users/${encodeURIComponent(session.user.phone)}`, formData, {
-        headers: {
-          "Content-Type": "multipart/form-data",
-        },
-      });
+      const response = await apiClient.patch(
+        `/users/${encodeURIComponent(session.user.phone)}`,
+        formData,
+        {
+          headers: {
+            "Content-Type": "multipart/form-data",
+          },
+        }
+      );
 
       if (response.data.success) {
-         
-          const res = await apiClient.get(`/users/${encodeURIComponent(session.user.phone)}`);
-        setUserData(res.data.data);
         toast.success("Settings saved successfully!");
         setIsSettingsModalOpen(false);
-        
-        // Only logout and redirect if company name was changed
+
         if (companyName !== originalCompanyName) {
+          // If company name changed, logout and redirect
           await signOut({ callbackUrl: "/auth/signin" });
+        } else {
+          // If only color or other settings changed, reload the page
+          window.location.reload();
         }
       } else {
         throw new Error(response.data.message || "Failed to save settings");
@@ -148,7 +152,10 @@ const NewCompanyNavbar = () => {
     <>
       <nav className="w-full bg-white shadow-md fixed top-0 z-30">
         <div className="flex h-fit items-center justify-between gap-x-4 shadow-lg bg-[#f7f7f7] px-4 py-4 text-sm text-gray-700 md:flex lg:px-12">
-          <Link href={`/${companyName}`}  className="text-2xl font-bold text-gray-500">
+          <Link
+            href={`/${companyName}`}
+            className="text-2xl font-bold text-gray-500"
+          >
             <Image
               alt="Company Logo"
               src={logoUrl}
